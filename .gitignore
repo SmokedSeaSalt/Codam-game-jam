@@ -1,0 +1,21 @@
+# Godot 4+ specific ignores
+.godot/
+.import/
+export.cfg
+export_presets.cfg
+
+# Imported translations (automatically generated from CSV files)
+*.translation
+
+# Mono-specific ignores
+.mono/
+data_*/
+
+# System/Editor files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+build/
+bin/
+*.pck
