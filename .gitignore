@@ -19,3 +19,6 @@ Thumbs.db
 build/
 bin/
 *.pck
+
+#tmp ignore animation system
+*.fbx
