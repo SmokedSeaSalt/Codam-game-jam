@@ -1,14 +1,22 @@
 [gd_scene format=3 uid="uid://usp4b4j6ey4s"]
 
 [ext_resource type="Script" uid="uid://cvyaknp4un4sd" path="res://entities/cat/cat.gd" id="1_ip1iv"]
+[ext_resource type="PackedScene" uid="uid://d2rdfw8hbr8nr" path="res://entities/cat/cat_skeleton.tscn" id="2_ip1iv"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_ip1iv"]
 
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_8aoym"]
+
 [node name="Cat" type="CharacterBody3D" unique_id=1703446555]
 script = ExtResource("1_ip1iv")
+
+[node name="Cat_Skeleton" parent="." unique_id=1215091885 instance=ExtResource("2_ip1iv")]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=349346798]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("SphereShape3D_ip1iv")
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=855028615]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1338905702]
+libraries/ = SubResource("AnimationLibrary_8aoym")

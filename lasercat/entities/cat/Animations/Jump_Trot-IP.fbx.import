@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bjgw1fcyjhw2b"
-path="res://.godot/imported/Cat_AllAnimations.fbx-31bf630771c36184bc1232dec5384353.scn"
+uid="uid://b7658dbkndfai"
+path="res://.godot/imported/Jump_Trot-IP.fbx-434c4eb6515a99e482dd7ac19696a774.scn"
 
 [deps]
 
-source_file="res://entities/cat/Cat_AllAnimations.fbx"
-dest_files=["res://.godot/imported/Cat_AllAnimations.fbx-31bf630771c36184bc1232dec5384353.scn"]
+source_file="res://entities/cat/Animations/Jump_Trot-IP.fbx"
+dest_files=["res://.godot/imported/Jump_Trot-IP.fbx-434c4eb6515a99e482dd7ac19696a774.scn"]
 
 [params]
 
@@ -41,12 +41,12 @@ materials/extract_format=0
 materials/extract_path=""
 _subresources={
 "animations": {
-"RigRoot|JumpX": {
-"save_to_file/enabled": false,
-"save_to_file/fallback_path": "",
+"Unreal Take": {
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://entities/cat/Animations/Trot.res",
 "save_to_file/keep_custom_tracks": "",
-"save_to_file/path": "",
-"settings/loop_mode": 1,
+"save_to_file/path": "uid://bo15e230c5x6u",
+"settings/loop_mode": 0,
 "slice_1/end_frame": 0,
 "slice_1/loop_mode": 0,
 "slice_1/name": "",
@@ -2096,11 +2096,6 @@ _subresources={
 "slice_99/save_to_file/path": "",
 "slice_99/start_frame": 0,
 "slices/amount": 0
-}
-},
-"nodes": {
-"PATH:AnimationPlayer": {
-"import/skip_import": true
 }
 }
 }
