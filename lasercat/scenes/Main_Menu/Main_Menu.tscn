@@ -1,0 +1,57 @@
+[gd_scene format=3 uid="uid://c154itfswxqcu"]
+
+[ext_resource type="PackedScene" uid="uid://usp4b4j6ey4s" path="res://entities/cat/cat.tscn" id="1_hyu1x"]
+[ext_resource type="Script" uid="uid://fuvyj5vam4r5" path="res://scenes/Main_Menu/main_menu.gd" id="1_is38u"]
+[ext_resource type="PackedScene" uid="uid://cmkwouakyghy8" path="res://entities/laser/Laser.tscn" id="3_0773x"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_0773x"]
+
+[sub_resource type="Sky" id="Sky_l2gwq"]
+sky_material = SubResource("ProceduralSkyMaterial_0773x")
+
+[sub_resource type="Environment" id="Environment_2cejj"]
+background_mode = 2
+sky = SubResource("Sky_l2gwq")
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_14h70"]
+vertices = PackedVector3Array(-24.5, 0.5, -24.5, -24.5, 0.5, 24.5, 24.5, 0.5, 24.5, 24.5, 0.5, -24.5)
+polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_25vdp"]
+size = Vector2(100, 100)
+
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_14h70"]
+
+[node name="MainMenu" type="Node3D" unique_id=1981713506]
+script = ExtResource("1_is38u")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1443746560]
+environment = SubResource("Environment_2cejj")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1529716497]
+transform = Transform3D(0.8660254, 0.38302222, -0.32139382, 0, 0.64278764, 0.76604444, 0.5, -0.66341394, 0.5566704, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1993842495]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 2)
+projection = 1
+current = true
+size = 30.0
+far = 200.0
+
+[node name="Cat" parent="." unique_id=1703446555 instance=ExtResource("1_hyu1x")]
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 5, 0, -3.6)
+collision_layer = 2
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=468329783]
+navigation_mesh = SubResource("NavigationMesh_14h70")
+
+[node name="Ground" type="MeshInstance3D" parent="NavigationRegion3D" unique_id=1649797607]
+mesh = SubResource("PlaneMesh_25vdp")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="NavigationRegion3D/Ground" unique_id=1006370136]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Ground/StaticBody3D" unique_id=1671684802]
+shape = SubResource("WorldBoundaryShape3D_14h70")
+
+[node name="Laser" parent="." unique_id=2146666949 instance=ExtResource("3_0773x")]

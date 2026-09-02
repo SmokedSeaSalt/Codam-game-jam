@@ -33,7 +33,9 @@ var _target_still_for: float = 0.0  # seconds since the laser last moved
 
 var target_pos: Vector3 = Vector3.ZERO:
 	set(value):
-		var moved := value.distance_to(target_pos) > 0.02
+		# Only X/Z counts as "the laser moved" — a few cm of Y wobble from the
+		# surface raycast near a cliff edge must not keep waking the cat.
+		var moved := Vector2(value.x - target_pos.x, value.z - target_pos.z).length() > 0.03
 		target_pos = value
 		nav_agent.target_position = value
 		if moved:
@@ -113,6 +115,13 @@ func _process_pounce(_delta: float) -> void:
 	_move_toward_nav_target(pounce_speed)
 
 func _move_toward_nav_target(speed: float) -> void:
+	var flat := _flat_distance_to_target()
+	# Close enough: hold still rather than overshoot and buzz around the dot.
+	# (Going fully IDLE is still gated on the laser being still — see _should_sit.)
+	if flat <= arrive_distance:
+		_stop()
+		return
+
 	# Always query so the agent keeps its path in sync with a moving target.
 	var next_pos: Vector3 = nav_agent.get_next_path_position()
 	var goal: Vector3 = next_pos
@@ -128,8 +137,10 @@ func _move_toward_nav_target(speed: float) -> void:
 		_stop()
 		return
 	direction = direction.normalized()
-	velocity.x = direction.x * speed
-	velocity.z = direction.z * speed
+	# Ease down over the last half-metre so arrival doesn't stop-start jitter.
+	var v := speed * clampf(flat / 0.5, 0.35, 1.0)
+	velocity.x = direction.x * v
+	velocity.z = direction.z * v
 
 # Horizontal (X/Z) gap to the laser. Y is ignored on purpose: the navmesh and
 # the cat's body rest at slightly different heights, so a full 3D check never
@@ -153,12 +164,21 @@ func _stop() -> void:
 
 func _update_facing(delta: float) -> void:
 	var move_dir := Vector3(velocity.x, 0, velocity.z)
-	if move_dir.length() < 0.01:
+	if move_dir.length() < 0.2:  # ignore micro-velocities so the model doesn't spin in place
 		return
 	# atan2 args depend on your model's forward axis (glTF default forward is -Z).
 	# If it faces backwards or sideways after this, swap signs/order here.
 	var target_angle := atan2(move_dir.x, move_dir.z)
 	model.rotation.y = lerp_angle(model.rotation.y, target_angle, delta * turn_speed)
+
+# World-space direction the cat is currently facing, flattened to the ground.
+# _update_facing aligns the model's local +Z with the travel direction, so +Z is
+# forward here. (If the laser ends up spawning BEHIND the cat, negate this.)
+func facing_dir() -> Vector3:
+	var f := model.global_transform.basis.z
+	f.y = 0.0
+	f = f.normalized()
+	return f if f.length() > 0.01 else Vector3.FORWARD
 	
 func _update_animation() -> void:
 	var want := anim_move

@@ -4,24 +4,16 @@
 [ext_resource type="PackedScene" uid="uid://usp4b4j6ey4s" path="res://entities/cat/cat.tscn" id="3_l2gwq"]
 [ext_resource type="Script" uid="uid://hoj44xpd0uk4" path="res://scenes/test_world/heightmap.gd" id="3_ndnd3"]
 [ext_resource type="Texture2D" uid="uid://b0su524mos3ah" path="res://scenes/test_world/heightmap_512x512.png" id="4_hmap"]
+[ext_resource type="PackedScene" uid="uid://cmkwouakyghy8" path="res://entities/laser/Laser.tscn" id="5_qgoic"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_3wcom"]
 
-[sub_resource type="Sky" id="Sky_24ar7"]
+[sub_resource type="Sky" id="Sky_l2gwq"]
 sky_material = SubResource("ProceduralSkyMaterial_3wcom")
 
 [sub_resource type="Environment" id="Environment_ngk0r"]
 background_mode = 2
-sky = SubResource("Sky_24ar7")
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_24ar7"]
-shading_mode = 0
-albedo_color = Color(1, 0, 0, 1)
-
-[sub_resource type="SphereMesh" id="SphereMesh_ngk0r"]
-material = SubResource("StandardMaterial3D_24ar7")
-radius = 0.15
-height = 0.3
+sky = SubResource("Sky_l2gwq")
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ngk0r"]
 size = Vector2(50, 50)
@@ -37,15 +29,11 @@ transform = Transform3D(0.8660254, 0.38302222, -0.32139382, 0, 0.64278764, 0.766
 shadow_enabled = true
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1780298056]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 20, 40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 19.735, 40)
 projection = 1
 current = true
 size = 12.0
 far = 200.0
-
-[node name="RedDot" type="MeshInstance3D" parent="." unique_id=1910867006]
-transform = Transform3D(0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, 0, 0.05, 0)
-mesh = SubResource("SphereMesh_ngk0r")
 
 [node name="Terrain" type="Node3D" parent="." unique_id=539595579]
 script = ExtResource("3_ndnd3")
@@ -63,3 +51,5 @@ transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
 [node name="Ground" type="MeshInstance3D" parent="." unique_id=1081182626]
 visible = false
 mesh = SubResource("PlaneMesh_ngk0r")
+
+[node name="Laser" parent="." unique_id=2146666949 instance=ExtResource("5_qgoic")]
