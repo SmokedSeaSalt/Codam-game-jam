@@ -46,12 +46,14 @@ max_level = 200
 heightmap_texture = ExtResource("4_hmap")
 texture_tile_size = 1.0
 
-[node name="Cat" parent="." unique_id=1703446555 instance=ExtResource("3_l2gwq")]
-transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0)
-
 [node name="Ground" type="MeshInstance3D" parent="." unique_id=1081182626]
 visible = false
 mesh = SubResource("PlaneMesh_ngk0r")
+
+[node name="Cat" parent="." unique_id=1703446555 instance=ExtResource("3_l2gwq")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0.009077311, 0.009087563, -0.0076612234)
+pounce_detect_range = 1.0
+flee_chase_range = 1.0
 
 [node name="Laser" parent="." unique_id=2146666949 instance=ExtResource("5_qgoic")]
 
