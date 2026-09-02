@@ -66,25 +66,18 @@ func _process(delta: float) -> void:
 	if _mouse_motion.length() < mouse_deadzone:
 		_mouse_motion = Vector2.ZERO
 	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and _mouse_motion != Vector2.ZERO:
-		# Move the laser in SCREEN space, then drop it back onto the ground plane.
-		# Tracks the mouse 1:1 on screen: mouse straight up -> dot straight up,
-		# regardless of the camera's tilt / foreshortening.
+		# Move the laser in SCREEN space (1:1 with the mouse, independent of the
+		# camera's tilt / foreshortening), then re-anchor it to the real terrain
+		# surface under that pixel.
 		var screen := camera.unproject_position(laser_pos) + _mouse_motion * laser_sensitivity
-		var from := camera.project_ray_origin(screen)
-		var dir := camera.project_ray_normal(screen)
-		var hit = Plane(Vector3.UP, 0.0).intersects_ray(from, dir)
-		if hit != null:
-			laser_pos = _clamp_to_ground(hit)
+		laser_pos = _screen_to_surface(screen)
 	_mouse_motion = Vector2.ZERO
 
-	# The laser is light, not an object: it rides at a constant height and is
-	# drawn on top of everything, so terrain bumps never touch it. Only X/Z move,
-	# straight from the mouse, so the motion is exactly as smooth as the input.
-	red_dot.global_position = Vector3(laser_pos.x, dot_height, laser_pos.z)
-	# The cat, though, needs the goal ON the terrain: the navmesh sits on the
-	# hills, so a Y=0 target would snap to the nearest ground point instead of
-	# the spot under the dot. Drop it onto the surface first.
-	cat.target_pos = Vector3(laser_pos.x, _surface_y(laser_pos.x, laser_pos.z), laser_pos.z)
+	# The dot and the cat's goal are now the SAME point on the terrain, so the cat
+	# can always reach exactly where the dot appears. The dot is lifted a hair and
+	# drawn with no depth test, so terrain never hides it.
+	red_dot.global_position = laser_pos + Vector3(0.0, dot_height, 0.0)
+	cat.target_pos = laser_pos
 
 	# Frame-rate-independent easing toward whatever the camera is following. In
 	# LASER mode it converges dead-centre once the mouse stops (the deadzone above
@@ -103,6 +96,22 @@ func _camera_focus() -> Vector3:
 			return Vector3(cat.global_position.x, 0.0, cat.global_position.z)
 		_:
 			return laser_pos
+
+# Cast the camera ray for a screen pixel into the terrain and return the hit
+# point. Falls back to the y=0 plane (horizon, off the map edge) so the laser
+# always has a valid position; holds the last spot if even that fails.
+func _screen_to_surface(screen: Vector2) -> Vector3:
+	var from := camera.project_ray_origin(screen)
+	var dir := camera.project_ray_normal(screen)
+	var params := PhysicsRayQueryParameters3D.create(from, from + dir * 500.0)
+	params.exclude = [cat.get_rid()]
+	var hit := get_world_3d().direct_space_state.intersect_ray(params)
+	if hit:
+		return _clamp_to_ground(hit.position)
+	var plane_hit = Plane(Vector3.UP, 0.0).intersects_ray(from, dir)
+	if plane_hit != null:
+		return _clamp_to_ground(plane_hit)
+	return laser_pos
 
 func _surface_y(x: float, z: float) -> float:
 	var params := PhysicsRayQueryParameters3D.create(
