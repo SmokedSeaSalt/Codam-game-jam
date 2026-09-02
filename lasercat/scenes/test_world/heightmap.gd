@@ -6,21 +6,21 @@ extends Node3D
 @export var tile_size: float = 0.5# smaller = finer steps; for 0.25 set cols/rows to 200
 @export var level_height: float = 0.5 # world units per height level — MUST equal Cat.gd step_height
 
-# ---- hill shape ------------------------------------------------------
-@export var max_level: int = 8# height at the hill corner
-@export var run: float = 6.0# tiles travelled per one level of drop (bigger = gentler)
-@export_enum("Square", "Rounded", "Diagonal") var contour: int = 0
+# ---- height range --------------------------------------------------
+@export var max_level: int = 64 # white in the heightmap = this many levels tall.
+								# an 8-bit png holds 256 grey values, so up to 255 is meaningful.
+@export var max_height: float = 3 # world units from the lowest point to the tallest.
+									# the whole terrain is scaled to fit this, whatever max_level says.
+
+# ---- heightmap source --------------------------------------------
+@export var heightmap_texture: Texture2D # grayscale png; black = low, white = high.
+										 # cols/rows above are auto-set from its pixel size.
+@export var flip_x: bool = false # mirror left/right if the terrain comes out reversed
+@export var flip_z: bool = false # mirror front/back
 
 # ---- look ----------------------------------------------------------
-@export var texture: Texture2D# e.g. res://icon.svg
+@export var texture: Texture2D# surface texture, e.g. res://icon.svg
 @export var texture_tile_size: float = 4.0# world units per texture repeat
-
-@export var noise_seed: int = 1337
-@export var contour_warp: float = 20.0# tiles — how much the terrace edges wander
-@export var roughness: float = 3.0# levels of high-frequency bumpiness
-@export var hill_noise_freq: float = 0.01 # lower = broader lumps in the outline
-@export var rough_noise_freq: float = 0.08# higher = finer grain on surfaces
-@export var peak_shape: float = 1.0 # 1 = rounded dome; >1 sharper peak; <1 flatter top
 
 @onready var nav_region: NavigationRegion3D
 
@@ -29,24 +29,38 @@ func _bake_navigation(_mi: MeshInstance3D) -> void:
 	add_child(nav_region)
 
 	var nav_mesh := NavigationMesh.new()
-	nav_mesh.agent_max_climb = level_height * 3 + 0.05
-	nav_mesh.agent_radius = 0.3
+	# Recast voxelises the terrain collider before tracing the walkable mesh, so
+	# the cells must resolve a single tile and agent_max_climb must clear the
+	# per-tile rise — otherwise the stepped surface bakes into thousands of tiny
+	# unclimbable ledges (which is what made pathfinding fall apart).
+	nav_mesh.cell_size = tile_size              # one voxel column per terrain tile
+	nav_mesh.cell_height = tile_size * 0.5
+	nav_mesh.agent_radius = tile_size * 2.0     # small, so narrow ledges survive erosion
+	nav_mesh.agent_max_climb = tile_size * 1.5  # ~walk <=55 deg slopes, steeper reads as wall
 	nav_mesh.agent_height = 1.0
-	nav_mesh.cell_size = 0.25
-	nav_mesh.cell_height = 0.25
 	nav_mesh.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
 
 	var source_geometry := NavigationMeshSourceGeometryData3D.new()
 	NavigationMeshGenerator.parse_source_geometry_data(nav_mesh, source_geometry, self)
 	NavigationMeshGenerator.bake_from_source_geometry_data(nav_mesh, source_geometry)
 
+	# The navigation MAP re-rasterises region edges at its own cell size; if that
+	# doesn't match the mesh we just baked, the edges misalign and connections
+	# drop out. Bring the map down to our resolution.
+	var map := get_world_3d().navigation_map
+	NavigationServer3D.map_set_cell_size(map, nav_mesh.cell_size)
+	NavigationServer3D.map_set_cell_height(map, nav_mesh.cell_height)
+
 	nav_region.navigation_mesh = nav_mesh
 	
 var heights: Array = []
+var _y_scale: float = 1.0 # multiplies every terrain Y so the peak lands on max_height
 
 func _ready() -> void:
-	_init_noise()
 	heights = _build_heights()
+	if heights.is_empty():
+		return # no heightmap assigned / unreadable — _build_heights() already logged why
+	_y_scale = _compute_y_scale()
 	var mesh := _build_mesh()
 
 	var mi := MeshInstance3D.new()
@@ -64,40 +78,31 @@ func _ready() -> void:
 	_bake_navigation(mi) 
 
 # --------------------------------------------------------------------
-var _n_hill := FastNoiseLite.new()
-var _n_rough := FastNoiseLite.new()
-
-func _init_noise() -> void:
-	_n_hill.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-	_n_hill.frequency = hill_noise_freq
-	_n_hill.seed = noise_seed
-	_n_rough.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-	_n_rough.frequency = rough_noise_freq
-	_n_rough.seed = noise_seed + 1
-	
 func _build_heights() -> Array:
+	if heightmap_texture == null:
+		push_error("Terrain: no heightmap_texture assigned on the Terrain node")
+		return []
+
+	var img := heightmap_texture.get_image()
+	if img == null:
+		push_error("Terrain: heightmap_texture has no readable image — set its import Compress mode to Lossless")
+		return []
+	if img.is_compressed():
+		img.decompress()
+
+	# the world resizes to whatever png you feed it: one pixel = one tile
+	cols = img.get_width()
+	rows = img.get_height()
+
 	var h: Array = []
 	for z in rows:
 			var row := PackedInt32Array()
 			row.resize(cols)
 			for x in cols:
-					var cx := float(x)
-					var cz := float((rows - 1) - z)# corner (0, rows-1) = screen-left
-
-					var dist: float
-					match contour:
-							0: dist = maxf(cx, cz)
-							1: dist = Vector2(cx, cz).length()
-							_: dist = cx + cz
-					dist += _n_hill.get_noise_2d(x, z) * contour_warp # organic, rounded edges
-
-					var reach := float(max_level) * run
-					var t := clampf(1.0 - dist / reach, 0.0, 1.0)
-					var base := float(max_level) * pow(smoothstep(0.0, 1.0, t), peak_shape)
-
-					var rough := _n_rough.get_noise_2d(x, z) * roughness
-
-					row[x] = clampi(int(round(base + rough)), 0, max_level)
+					var sx: int = (cols - 1 - x) if flip_x else x
+					var sz: int = (rows - 1 - z) if flip_z else z
+					var v := img.get_pixel(sx, sz).r # 0..1 brightness; grey png -> r == g == b
+					row[x] = clampi(int(round(v * max_level)), 0, max_level)
 			h.append(row)
 	return h
 
@@ -105,6 +110,14 @@ func _height_at(x: int, z: int) -> int:
 	if x < 0 or x >= cols or z < 0 or z >= rows:
 			return 0
 	return heights[z][x]
+
+func _compute_y_scale() -> float:
+	var peak := 0
+	for row in heights:
+			for v in row:
+					peak = maxi(peak, v)
+	var raw := peak * level_height
+	return (max_height / raw) if raw > 0.0 else 1.0
 
 func _build_mesh() -> ArrayMesh:
 	var st := SurfaceTool.new()
@@ -117,7 +130,7 @@ func _build_mesh() -> ArrayMesh:
 	for z in rows:
 			for x in cols:
 					var hh: int = heights[z][x]
-					var y: float = hh * level_height
+					var y: float = hh * level_height * _y_scale
 					var x0 := ox + x * s
 					var x1 := ox + (x + 1) * s
 					var z0 := oz + z * s
@@ -136,8 +149,8 @@ func _build_mesh() -> ArrayMesh:
 func _wall(st: SurfaceTool, h: int, nh: int, a: Vector3, b: Vector3, n: Vector3) -> void:
 	if nh >= h:
 			return
-	var yb := nh * level_height
-	var yt := h * level_height
+	var yb := nh * level_height * _y_scale
+	var yt := h * level_height * _y_scale
 	_quad(st, Vector3(a.x, yb, a.z), Vector3(b.x, yb, b.z),
 						Vector3(b.x, yt, b.z), Vector3(a.x, yt, a.z), n)
 
