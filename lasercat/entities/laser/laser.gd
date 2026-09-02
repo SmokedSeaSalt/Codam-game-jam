@@ -8,6 +8,7 @@ signal laser_toggled(active: bool)
 @export var laser_sensitivity: float = 1.0
 @export var mouse_deadzone: float = 1.5
 @export var dot_height: float = 0.05
+@export var spawn_ahead: float = 0.6  # metres in front of the cat's nose when toggled on
 
 @onready var dot: MeshInstance3D = $Dot
 
@@ -32,8 +33,8 @@ func _make_dot_overlay() -> void:
 # Called once by the main scene right after the cat's spawn point is known,
 # so the laser doesn't jump from (0,0,0) the first time it's toggled on.
 func start_at(pos: Vector3) -> void:
-	laser_pos = Vector3(pos.x, 0.0, pos.z)
-	dot.global_position = Vector3(laser_pos.x, dot_height, laser_pos.z)
+	laser_pos = Vector3(pos.x, _surface_y(pos.x, pos.z), pos.z)
+	dot.global_position = laser_pos + Vector3(0.0, dot_height, 0.0)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -42,38 +43,59 @@ func _unhandled_input(event: InputEvent) -> void:
 		laser_toggled.emit(active)
 		_mouse_motion = Vector2.ZERO
 		if active:
-			_snap_to_mouse()
+			_snap_to_cat()
 	elif event is InputEventMouseMotion and active:
 		_mouse_motion += event.relative
 
-func _snap_to_mouse() -> void:
-	var m := get_viewport().get_mouse_position()
-	var from := camera.project_ray_origin(m)
-	var dir := camera.project_ray_normal(m)
-	var hit = Plane(Vector3.UP, 0.0).intersects_ray(from, dir)
-	if hit != null:
-		laser_pos = _clamp_to_ground(hit)
-		dot.global_position = Vector3(laser_pos.x, dot_height, laser_pos.z)
-		target_updated.emit(Vector3(laser_pos.x, _surface_y(laser_pos.x, laser_pos.z), laser_pos.z))
+# The mouse is captured, so there is no absolute cursor to read: on toggle-on the
+# dot appears on the ground a little in front of the sitting cat (so it isn't
+# hidden under the body), then the player leads it away with relative motion.
+func _snap_to_cat() -> void:
+	var base := global_position
+	if cat:
+		base = cat.global_position + cat.facing_dir() * spawn_ahead
+	laser_pos = Vector3(base.x, _surface_y(base.x, base.z), base.z)
+	dot.global_position = laser_pos + Vector3(0.0, dot_height, 0.0)
+	target_updated.emit(laser_pos)
 
 func _process(_delta: float) -> void:
 	if not active:
 		return
 	if _mouse_motion.length() < mouse_deadzone:
 		_mouse_motion = Vector2.ZERO
-	if _mouse_motion != Vector2.ZERO:
-		# Screen-space motion, so this works the same whether the mouse is
-		# free or MOUSE_MODE_CAPTURED (relative-only, no absolute cursor).
-		var screen := camera.unproject_position(laser_pos) + _mouse_motion * laser_sensitivity
-		var from := camera.project_ray_origin(screen)
-		var dir := camera.project_ray_normal(screen)
-		var hit = Plane(Vector3.UP, 0.0).intersects_ray(from, dir)
-		if hit != null:
-			laser_pos = _clamp_to_ground(hit)
-	_mouse_motion = Vector2.ZERO
+	if _mouse_motion == Vector2.ZERO:
+		return  # mouse at rest: stop feeding the cat so it can settle and sit
 
-	dot.global_position = Vector3(laser_pos.x, dot_height, laser_pos.z)
-	target_updated.emit(Vector3(laser_pos.x, _surface_y(laser_pos.x, laser_pos.z), laser_pos.z))
+	# Screen-space motion, so this works the same whether the mouse is free or
+	# MOUSE_MODE_CAPTURED (relative-only, no absolute cursor).
+	var screen := camera.unproject_position(laser_pos) + _mouse_motion * laser_sensitivity
+	_mouse_motion = Vector2.ZERO
+	var np := _screen_to_surface(screen)
+	if np.distance_to(laser_pos) < 0.002:
+		return  # sub-millimetre: treat as no move, don't re-trigger the chase
+
+	laser_pos = np
+	# Dot sits exactly where the cat is told to go: same terrain point, lifted a
+	# hair and drawn on top so it never hides behind a slope.
+	dot.global_position = laser_pos + Vector3(0.0, dot_height, 0.0)
+	target_updated.emit(laser_pos)
+
+# Where on the ground is the player pointing? Intersect the camera ray with a
+# HORIZONTAL plane at the dot's CURRENT height, then look up the real terrain
+# height there. We deliberately do NOT raycast the terrain mesh: the camera looks
+# in at a shallow angle, so a mesh ray skims over cliff tops and lands on the
+# ground far behind them — the dot appears to teleport straight down. A flat
+# plane has no silhouette to skim, and anchoring it at laser_pos.y keeps it
+# tracking the surface height as the dot moves, so there's little parallax.
+func _screen_to_surface(screen: Vector2) -> Vector3:
+	var from := camera.project_ray_origin(screen)
+	var dir := camera.project_ray_normal(screen)
+	var hit = Plane(Vector3.UP, laser_pos.y).intersects_ray(from, dir)
+	if hit == null:
+		return laser_pos
+	var p := _clamp_to_ground(hit)
+	p.y = _surface_y(p.x, p.z)
+	return p
 
 func _surface_y(x: float, z: float) -> float:
 	var params := PhysicsRayQueryParameters3D.create(Vector3(x, 100.0, z), Vector3(x, -100.0, z))
