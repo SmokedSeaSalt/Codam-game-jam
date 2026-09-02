@@ -30,6 +30,11 @@ func _ready() -> void:
 	# toggle-on doesn't snap the dot in from (0,0,0).
 	laser.start_at(Vector3(cat.global_position.x, 0.0, cat.global_position.z))
 
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		get_tree().quit()
+
 func _on_target_updated(pos: Vector3) -> void:
 	cat.target_pos = pos
 

@@ -67,7 +67,6 @@ far = 200.0
 
 [node name="Cat" parent="." unique_id=1703446555 instance=ExtResource("1_hyu1x")]
 transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 5, 0.1, -3.6)
-collision_layer = 2
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=468329783]
 navigation_mesh = SubResource("NavigationMesh_o4vf6")
@@ -110,7 +109,7 @@ mesh = SubResource("BoxMesh_14h70")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.65778, -2.3841858e-07, -4.191003)
 
 [node name="CatBed" parent="." unique_id=2048645366 instance=ExtResource("8_ggc8f")]
-transform = Transform3D(0.10458697, 0, 1.1954337, 0, 1.2, 0, -1.1954337, 0, 0.10458697, 4.986762, 0.06040454, -3.4946043)
+transform = Transform3D(0.13944928, 0, 1.5939115, 0, 1.2, 0, -1.5939115, 0, 0.13944928, 4.986762, 0.06040454, -3.4946043)
 
 [node name="LeftClick" type="Sprite3D" parent="." unique_id=1289757783]
 transform = Transform3D(-0.4, -9.059749e-08, 2.6400945e-15, 0, -2.6226834e-08, -0.4, 6.039832e-08, -0.6, 1.7484556e-08, -5.6029186, 0.01, -3.3061428)
