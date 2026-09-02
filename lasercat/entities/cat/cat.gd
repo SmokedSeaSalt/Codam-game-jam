@@ -110,30 +110,3 @@ func _update_animation() -> void:
 		("RigRoot|Loco_Trot-IP" if velocity.length() > 0.1 else "RigRoot|Loco_Trot-IP")
 	if anim_player.has_animation(anim_name) and anim_player.current_animation != anim_name:
 		anim_player.play(anim_name)
-
-#const DIRECTIONS := ["up", "up_right", "right", "down_right", "down", "left_down", "left", "left_up"]
-#@onready var camera: Camera3D = get_viewport().get_camera_3d()
-#
-#func _get_direction_name(move_dir: Vector3) -> String:
-	#if move_dir.length() < 0.01:
-		#return "down"
-#
-	## Rotate move_dir into camera-relative space so "up" means
-	## "away from camera on screen", not world -Z.
-	#var cam_basis := camera.global_transform.basis
-	#var cam_yaw := atan2(cam_basis.z.x, cam_basis.z.z)
-	#var rotated := move_dir.rotated(Vector3.UP, cam_yaw)
-#
-	#var angle := atan2(rotated.x, -rotated.z) - deg_to_rad(-90)
-	#if angle < 0:
-		#angle += TAU
-	#var index := int(round(angle / (TAU / 8.0))) % 8
-	#return DIRECTIONS[index]
-#
-#func _update_animation() -> void:
-	#var move_dir := Vector3(velocity.x, 0, velocity.z)
-	#var direction_name := _get_direction_name(move_dir)
-	#var state_name := "attack" if current_state == State.POUNCE else "idle"
-	#var anim_name := "%s_%s" % [state_name, direction_name]
-	#if sprite.sprite_frames.has_animation(anim_name) and sprite.animation != anim_name:
-		#sprite.play(anim_name)
