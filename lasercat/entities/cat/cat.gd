@@ -16,8 +16,8 @@ var idle_timer: float = 0.0
 @onready var nav_agent: NavigationAgent3D = $NavigationAgent3D
 #@onready var model: Node3D = $Cat_body  # rename to match your instanced glb node
 #@onready var anim_player: AnimationPlayer = $Cat_body/AnimationPlayer  # adjust path if nested differently
-@onready var model: Node3D = $Cat_AllAnimations
-@onready var anim_player: AnimationPlayer = $Cat_AllAnimations/AnimationPlayer
+@onready var model: Node3D = $Skeleton3D
+@onready var anim_player: AnimationPlayer = $AnimationPlayer
 
 
 var target_pos: Vector3 = Vector3.ZERO:

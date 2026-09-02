@@ -1,0 +1,14 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://3lvhfaqnuxi3"]
+
+[ext_resource type="Texture2D" uid="uid://cn8dw5khv4my2" path="res://entities/cat/LAZER_PUSSY_Cat_Orange_BaseColor.png" id="1_m62nr"]
+[ext_resource type="Texture2D" uid="uid://d1ydnplsrqn60" path="res://entities/cat/Cat_AllAnimations_1.png" id="2_trj7o"]
+
+[resource]
+resource_name = "Cat_MAT"
+albedo_texture = ExtResource("1_m62nr")
+emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 0.0
+normal_enabled = true
+normal_scale = 0.0
+normal_texture = ExtResource("2_trj7o")

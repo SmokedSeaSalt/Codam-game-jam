@@ -1,0 +1,15 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://hnab2tqvnr12"]
+
+[ext_resource type="Texture2D" uid="uid://bseb4yes3h40t" path="res://entities/cat/Cat_AllAnimations_0.png" id="1_vgf5t"]
+[ext_resource type="Texture2D" uid="uid://d1ydnplsrqn60" path="res://entities/cat/Cat_AllAnimations_1.png" id="2_dd3sn"]
+
+[resource]
+resource_name = "Cat_MAT"
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("1_vgf5t")
+emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 0.0
+normal_enabled = true
+normal_scale = 0.0
+normal_texture = ExtResource("2_dd3sn")

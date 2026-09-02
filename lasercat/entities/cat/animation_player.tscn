@@ -1,0 +1,395 @@
+[gd_scene format=3 uid="uid://c7wsusd7bdu65"]
+
+[ext_resource type="Animation" uid="uid://cmd8873kcl30p" path="res://entities/cat/Animations/RigRoot_Action_Scratching.res" id="1_lxunj"]
+[ext_resource type="Animation" uid="uid://tyfot4syebn" path="res://entities/cat/Animations/RigRoot_Action_Scratching-IP.res" id="2_qup7c"]
+[ext_resource type="Animation" uid="uid://dwreld6bmupgf" path="res://entities/cat/Animations/RigRoot_Action_Urinating.res" id="3_tyfpw"]
+[ext_resource type="Animation" uid="uid://3x7tjetvegr7" path="res://entities/cat/Animations/RigRoot_Action_Urinating-IP.res" id="4_812mr"]
+[ext_resource type="Animation" uid="uid://dyp6tyajog5qa" path="res://entities/cat/Animations/RigRoot_Add_Hit_ChestL_Heavy.res" id="5_2wi18"]
+[ext_resource type="Animation" uid="uid://lmnbsxnjeb24" path="res://entities/cat/Animations/RigRoot_Add_Hit_ChestL_Light.res" id="6_hynb2"]
+[ext_resource type="Animation" uid="uid://b1yarcmef4o58" path="res://entities/cat/Animations/RigRoot_Add_Hit_ChestR_Heavy.res" id="7_y6ep4"]
+[ext_resource type="Animation" uid="uid://cbmnf015k0sse" path="res://entities/cat/Animations/RigRoot_Add_Hit_ChestR_Light.res" id="8_pjsjv"]
+[ext_resource type="Animation" uid="uid://2yhi6nsc3nal" path="res://entities/cat/Animations/RigRoot_Add_Hit_HeadL_Heavy.res" id="9_yjgso"]
+[ext_resource type="Animation" uid="uid://7bpvsvssv32v" path="res://entities/cat/Animations/RigRoot_Add_Hit_HeadL_Light.res" id="10_ssgq6"]
+[ext_resource type="Animation" uid="uid://dbxjxgeyrbeqd" path="res://entities/cat/Animations/RigRoot_Add_Hit_HeadR_Heavy.res" id="11_8kv4k"]
+[ext_resource type="Animation" uid="uid://cqgtiqgtb0k3w" path="res://entities/cat/Animations/RigRoot_Add_Hit_HeadR_Light.res" id="12_qyrfe"]
+[ext_resource type="Animation" uid="uid://c0vu1a0hy53nr" path="res://entities/cat/Animations/RigRoot_Add_Hit_PelvisL_Heavy.res" id="13_lolq0"]
+[ext_resource type="Animation" uid="uid://deps7vn0c3deq" path="res://entities/cat/Animations/RigRoot_Add_Hit_PelvisL_Light.res" id="14_n076g"]
+[ext_resource type="Animation" uid="uid://cyrp0ldkxpkc5" path="res://entities/cat/Animations/RigRoot_Add_Hit_PelvisR_Heavy.res" id="15_kvqiq"]
+[ext_resource type="Animation" uid="uid://cvvj3vx80muxn" path="res://entities/cat/Animations/RigRoot_Add_Hit_PelvisR_Light.res" id="16_7w0d8"]
+[ext_resource type="Animation" uid="uid://qjn5krvogpei" path="res://entities/cat/Animations/RigRoot_Add_Loco_Left.res" id="17_3ds7t"]
+[ext_resource type="Animation" uid="uid://bbvx2cqx7eyp8" path="res://entities/cat/Animations/RigRoot_Add_Loco_Right.res" id="18_dcb3x"]
+[ext_resource type="Animation" uid="uid://br8hl0xk4pjoy" path="res://entities/cat/Animations/RigRoot_Add_Look_Down.res" id="19_lsgix"]
+[ext_resource type="Animation" uid="uid://bvwp38b6t5fk2" path="res://entities/cat/Animations/RigRoot_Add_Look_Left.res" id="20_8gubx"]
+[ext_resource type="Animation" uid="uid://c3e4o8m80fg08" path="res://entities/cat/Animations/RigRoot_Add_Look_LeftDown.res" id="21_mnmb6"]
+[ext_resource type="Animation" uid="uid://0pmd1jgvtwlv" path="res://entities/cat/Animations/RigRoot_Add_Look_LeftUp.res" id="22_akv6j"]
+[ext_resource type="Animation" uid="uid://13entif1bgwf" path="res://entities/cat/Animations/RigRoot_Add_Look_Right.res" id="23_1ttfg"]
+[ext_resource type="Animation" uid="uid://lj6vhqy6ru41" path="res://entities/cat/Animations/RigRoot_Add_Look_RightDown.res" id="24_v67oo"]
+[ext_resource type="Animation" uid="uid://bfki8lhs3aic0" path="res://entities/cat/Animations/RigRoot_Add_Look_RightUp.res" id="25_jxwkc"]
+[ext_resource type="Animation" uid="uid://dret1csmmolvf" path="res://entities/cat/Animations/RigRoot_Add_Look_Up.res" id="26_t715n"]
+[ext_resource type="Animation" uid="uid://bewoe8pujsnuh" path="res://entities/cat/Animations/RigRoot_Add_Neutral.res" id="27_463np"]
+[ext_resource type="Animation" uid="uid://crppv28ie0rs2" path="res://entities/cat/Animations/RigRoot_Agressive_01.res" id="28_m5srj"]
+[ext_resource type="Animation" uid="uid://bhugbp7710x81" path="res://entities/cat/Animations/RigRoot_Agressive_01-IP.res" id="29_vxrik"]
+[ext_resource type="Animation" uid="uid://bhvj5xs3duuo3" path="res://entities/cat/Animations/RigRoot_Attack_Agressive_Legs_01.res" id="30_xbpmh"]
+[ext_resource type="Animation" uid="uid://dhjy4mpekbwnf" path="res://entities/cat/Animations/RigRoot_Attack_Agressive_Legs_01-IP.res" id="31_nh8ds"]
+[ext_resource type="Animation" uid="uid://il6me70adfnn" path="res://entities/cat/Animations/RigRoot_Attack_Agressive_Legs_02.res" id="32_ifsrf"]
+[ext_resource type="Animation" uid="uid://cif3w75wemxoi" path="res://entities/cat/Animations/RigRoot_Attack_Agressive_Legs_02-IP.res" id="33_mqto1"]
+[ext_resource type="Animation" uid="uid://cytrsvscmksox" path="res://entities/cat/Animations/RigRoot_Attack_Left.res" id="34_8coas"]
+[ext_resource type="Animation" uid="uid://d2e28nubgrriv" path="res://entities/cat/Animations/RigRoot_Attack_Left-IP.res" id="35_a6imr"]
+[ext_resource type="Animation" uid="uid://c1sq67i8fdqtn" path="res://entities/cat/Animations/RigRoot_Attack_Right.res" id="36_b7omu"]
+[ext_resource type="Animation" uid="uid://chcg7r0p2vanh" path="res://entities/cat/Animations/RigRoot_Attack_Right-IP.res" id="37_rg3d0"]
+[ext_resource type="Animation" uid="uid://d375713lo8dxg" path="res://entities/cat/Animations/RigRoot_Death_01.res" id="38_c3aso"]
+[ext_resource type="Animation" uid="uid://dl8ao5h7er4jm" path="res://entities/cat/Animations/RigRoot_Death_01-IP.res" id="39_5sr1r"]
+[ext_resource type="Animation" uid="uid://cjwriroijaaff" path="res://entities/cat/Animations/RigRoot_Death_01_Pose.res" id="40_gcp5c"]
+[ext_resource type="Animation" uid="uid://77k7r1b6mqhf" path="res://entities/cat/Animations/RigRoot_Death_01_Pose-IP.res" id="41_6ki87"]
+[ext_resource type="Animation" uid="uid://ba2pe0otctq6p" path="res://entities/cat/Animations/RigRoot_Death_02.res" id="42_tv2ia"]
+[ext_resource type="Animation" uid="uid://c070k4i8h18p" path="res://entities/cat/Animations/RigRoot_Death_02-IP.res" id="43_e3s1c"]
+[ext_resource type="Animation" uid="uid://cj80qjkvoo2s7" path="res://entities/cat/Animations/RigRoot_Death_02_Pose.res" id="44_0oixo"]
+[ext_resource type="Animation" uid="uid://ba0b33tmco5qo" path="res://entities/cat/Animations/RigRoot_Death_02_Pose-IP.res" id="45_4ybx7"]
+[ext_resource type="Animation" uid="uid://d04omsf8c7t1c" path="res://entities/cat/Animations/RigRoot_Drinking_01.res" id="46_b83q7"]
+[ext_resource type="Animation" uid="uid://d1hlo1qdwdoln" path="res://entities/cat/Animations/RigRoot_Drinking_01-IP.res" id="47_57iu7"]
+[ext_resource type="Animation" uid="uid://cfkatke63gr0l" path="res://entities/cat/Animations/RigRoot_Eating_01.res" id="48_8wkmf"]
+[ext_resource type="Animation" uid="uid://bhl3gaddgofy7" path="res://entities/cat/Animations/RigRoot_Eating_01-IP.res" id="49_5i3rb"]
+[ext_resource type="Animation" uid="uid://cxygxdcfaihwm" path="res://entities/cat/Animations/RigRoot_Eating_02.res" id="50_0prsj"]
+[ext_resource type="Animation" uid="uid://d0c7r4ijsc8nk" path="res://entities/cat/Animations/RigRoot_Eating_02-IP.res" id="51_wf4d3"]
+[ext_resource type="Animation" uid="uid://b4w8f1dkwiou6" path="res://entities/cat/Animations/RigRoot_Hit_ChestL_Heavy.res" id="52_80q0f"]
+[ext_resource type="Animation" uid="uid://mklapesgmcqo" path="res://entities/cat/Animations/RigRoot_Hit_ChestL_Heavy-IP.res" id="53_e248k"]
+[ext_resource type="Animation" uid="uid://b4x6l137lk3ti" path="res://entities/cat/Animations/RigRoot_Hit_ChestL_Light.res" id="54_yyapu"]
+[ext_resource type="Animation" uid="uid://dpv383lcw36mk" path="res://entities/cat/Animations/RigRoot_Hit_ChestL_Light-IP.res" id="55_gmblv"]
+[ext_resource type="Animation" uid="uid://ve3m6ix2ymmp" path="res://entities/cat/Animations/RigRoot_Hit_ChestR_Heavy.res" id="56_cmkmf"]
+[ext_resource type="Animation" uid="uid://dyj1etqbx6ky5" path="res://entities/cat/Animations/RigRoot_Hit_ChestR_Heavy-IP.res" id="57_f386p"]
+[ext_resource type="Animation" uid="uid://dfv3cprqi575k" path="res://entities/cat/Animations/RigRoot_Hit_ChestR_Light.res" id="58_o8cc7"]
+[ext_resource type="Animation" uid="uid://b2y0lfvnpvfxs" path="res://entities/cat/Animations/RigRoot_Hit_ChestR_Light-IP.res" id="59_tl036"]
+[ext_resource type="Animation" uid="uid://dfr6xcr04je4u" path="res://entities/cat/Animations/RigRoot_Hit_HeadL_Heavy.res" id="60_wbwls"]
+[ext_resource type="Animation" uid="uid://o7lq1s1b5sf5" path="res://entities/cat/Animations/RigRoot_Hit_HeadL_Heavy-IP.res" id="61_sjlhu"]
+[ext_resource type="Animation" uid="uid://dfr0atwkm36k0" path="res://entities/cat/Animations/RigRoot_Hit_HeadL_Light.res" id="62_edb5g"]
+[ext_resource type="Animation" uid="uid://jq2krdqwu5xo" path="res://entities/cat/Animations/RigRoot_Hit_HeadL_Light-IP.res" id="63_0vchm"]
+[ext_resource type="Animation" uid="uid://bcnbqwff74u5m" path="res://entities/cat/Animations/RigRoot_Hit_HeadR_Heavy.res" id="64_m4p54"]
+[ext_resource type="Animation" uid="uid://dqvxl5phe24oe" path="res://entities/cat/Animations/RigRoot_Hit_HeadR_Heavy-IP.res" id="65_u6w67"]
+[ext_resource type="Animation" uid="uid://gmhs5t2pekyo" path="res://entities/cat/Animations/RigRoot_Hit_HeadR_Light.res" id="66_rvw8g"]
+[ext_resource type="Animation" uid="uid://d3li3wtlry16r" path="res://entities/cat/Animations/RigRoot_Hit_HeadR_Light-IP.res" id="67_653kr"]
+[ext_resource type="Animation" uid="uid://bjr4t8aum646p" path="res://entities/cat/Animations/RigRoot_Hit_PelvisL_Heavy.res" id="68_sostb"]
+[ext_resource type="Animation" uid="uid://5v4pn8u7frjm" path="res://entities/cat/Animations/RigRoot_Hit_PelvisL_Heavy-IP.res" id="69_78ouo"]
+[ext_resource type="Animation" uid="uid://caioppvhb66x4" path="res://entities/cat/Animations/RigRoot_Hit_PelvisL_Light.res" id="70_8767u"]
+[ext_resource type="Animation" uid="uid://woe8027rfsad" path="res://entities/cat/Animations/RigRoot_Hit_PelvisL_Light-IP.res" id="71_dodvc"]
+[ext_resource type="Animation" uid="uid://dbgsscrkara76" path="res://entities/cat/Animations/RigRoot_Hit_PelvisR_Heavy.res" id="72_aqw8q"]
+[ext_resource type="Animation" uid="uid://cgqvddfe1vgeu" path="res://entities/cat/Animations/RigRoot_Hit_PelvisR_Heavy-IP.res" id="73_r5c0t"]
+[ext_resource type="Animation" uid="uid://bgtlm7k0ej1gk" path="res://entities/cat/Animations/RigRoot_Hit_PelvisR_Light.res" id="74_ekw07"]
+[ext_resource type="Animation" uid="uid://d32ttrqnkx2h2" path="res://entities/cat/Animations/RigRoot_Hit_PelvisR_Light-IP.res" id="75_28fu4"]
+[ext_resource type="Animation" uid="uid://bxny4hlrpbhbi" path="res://entities/cat/Animations/RigRoot_JumpX.res" id="76_4qk0a"]
+[ext_resource type="Animation" uid="uid://bct8dctc1q6ol" path="res://entities/cat/Animations/RigRoot_JumpX_End.res" id="77_ip8jc"]
+[ext_resource type="Animation" uid="uid://bsof2w7gkiqch" path="res://entities/cat/Animations/RigRoot_JumpX_End-IP.res" id="78_itil4"]
+[ext_resource type="Animation" uid="uid://ccem64vtw6oih" path="res://entities/cat/Animations/RigRoot_JumpX_Loop-IP.res" id="79_anx5m"]
+[ext_resource type="Animation" uid="uid://c4r3jfrhcx8gn" path="res://entities/cat/Animations/RigRoot_JumpX_Start.res" id="80_22ci5"]
+[ext_resource type="Animation" uid="uid://bg2gu0fo34a42" path="res://entities/cat/Animations/RigRoot_JumpX_Start-IP.res" id="81_wumju"]
+[ext_resource type="Animation" uid="uid://b8eom8iogtflp" path="res://entities/cat/Animations/RigRoot_Jump_Down.res" id="82_052kn"]
+[ext_resource type="Animation" uid="uid://cj2ilnh6x1gk0" path="res://entities/cat/Animations/RigRoot_Jump_Down-IP.res" id="83_ml4hd"]
+[ext_resource type="Animation" uid="uid://cm2tb3g6dwsse" path="res://entities/cat/Animations/RigRoot_Jump_Run.res" id="84_jdnc5"]
+[ext_resource type="Animation" uid="uid://d0d5mrpcjpvr3" path="res://entities/cat/Animations/RigRoot_Jump_Run-IP.res" id="85_ugbar"]
+[ext_resource type="Animation" uid="uid://c3bplp8ussgn5" path="res://entities/cat/Animations/RigRoot_Jump_Stand.res" id="86_scvrr"]
+[ext_resource type="Animation" uid="uid://cdsgui5wioijq" path="res://entities/cat/Animations/RigRoot_Jump_Stand-IP.res" id="87_hhtt6"]
+[ext_resource type="Animation" uid="uid://dxnp1cj5v8vtb" path="res://entities/cat/Animations/RigRoot_Jump_Trot.res" id="88_03o4h"]
+[ext_resource type="Animation" uid="uid://crd003mgkdtfg" path="res://entities/cat/Animations/RigRoot_Jump_Trot-IP.res" id="89_c7omk"]
+[ext_resource type="Animation" uid="uid://25r41bwovri5" path="res://entities/cat/Animations/RigRoot_Jump_Up.res" id="90_ctpkr"]
+[ext_resource type="Animation" uid="uid://coqh6cc56diig" path="res://entities/cat/Animations/RigRoot_Jump_Up-IP.res" id="91_c4mx4"]
+[ext_resource type="Animation" uid="uid://b60i4nb1tfguw" path="res://entities/cat/Animations/RigRoot_Loco_Run.res" id="92_x4vnk"]
+[ext_resource type="Animation" uid="uid://s2h2jek300l3" path="res://entities/cat/Animations/RigRoot_Loco_Run-IP.res" id="93_llnde"]
+[ext_resource type="Animation" uid="uid://bycp0aiwonuoq" path="res://entities/cat/Animations/RigRoot_Loco_Run_L.res" id="94_0rjiw"]
+[ext_resource type="Animation" uid="uid://cd88rsgodxoua" path="res://entities/cat/Animations/RigRoot_Loco_Run_L-IP.res" id="95_wri11"]
+[ext_resource type="Animation" uid="uid://b1duv51xnexi8" path="res://entities/cat/Animations/RigRoot_Loco_Run_R.res" id="96_bruoi"]
+[ext_resource type="Animation" uid="uid://bxh6mjv65626p" path="res://entities/cat/Animations/RigRoot_Loco_Run_R-IP.res" id="97_yjpke"]
+[ext_resource type="Animation" uid="uid://dqc22j22mj40a" path="res://entities/cat/Animations/RigRoot_Loco_Sneak.res" id="98_rxcvo"]
+[ext_resource type="Animation" uid="uid://btljc3ad80uw1" path="res://entities/cat/Animations/RigRoot_Loco_Sneak-IP.res" id="99_psd6a"]
+[ext_resource type="Animation" uid="uid://flig3whqr4hd" path="res://entities/cat/Animations/RigRoot_Loco_Sneak_L.res" id="100_w7bw8"]
+[ext_resource type="Animation" uid="uid://c28mvogwke51c" path="res://entities/cat/Animations/RigRoot_Loco_Sneak_L-IP.res" id="101_ilgbq"]
+[ext_resource type="Animation" uid="uid://c3h7xumfqsffm" path="res://entities/cat/Animations/RigRoot_Loco_Sneak_R.res" id="102_p3idg"]
+[ext_resource type="Animation" uid="uid://tuuhd4tivxam" path="res://entities/cat/Animations/RigRoot_Loco_Sneak_R-IP.res" id="103_samk5"]
+[ext_resource type="Animation" uid="uid://cmywgh40ykvux" path="res://entities/cat/Animations/RigRoot_Loco_Sprint.res" id="104_ucf4u"]
+[ext_resource type="Animation" uid="uid://b6pmkfm1j1lvw" path="res://entities/cat/Animations/RigRoot_Loco_Sprint-IP.res" id="105_ah24o"]
+[ext_resource type="Animation" uid="uid://5njt7qg7jcng" path="res://entities/cat/Animations/RigRoot_Loco_Sprint_L.res" id="106_c71ud"]
+[ext_resource type="Animation" uid="uid://dtjcg30eumdpk" path="res://entities/cat/Animations/RigRoot_Loco_Sprint_L-IP.res" id="107_ve6g3"]
+[ext_resource type="Animation" uid="uid://cev4pi0xr1efb" path="res://entities/cat/Animations/RigRoot_Loco_Sprint_R.res" id="108_vyja4"]
+[ext_resource type="Animation" uid="uid://d17b4o3l2nuvu" path="res://entities/cat/Animations/RigRoot_Loco_Sprint_R-IP.res" id="109_s8erx"]
+[ext_resource type="Animation" uid="uid://cu4dtypnmauvl" path="res://entities/cat/Animations/RigRoot_Loco_Swim.res" id="110_kbk5n"]
+[ext_resource type="Animation" uid="uid://be4dllibjaqi0" path="res://entities/cat/Animations/RigRoot_Loco_Swim-IP.res" id="111_yk16f"]
+[ext_resource type="Animation" uid="uid://diu7bo4n0nu1g" path="res://entities/cat/Animations/RigRoot_Loco_Swim_L.res" id="112_is7bw"]
+[ext_resource type="Animation" uid="uid://c137k6xxla5pf" path="res://entities/cat/Animations/RigRoot_Loco_Swim_L-IP.res" id="113_jw8xd"]
+[ext_resource type="Animation" uid="uid://bicniru5g88na" path="res://entities/cat/Animations/RigRoot_Loco_Swim_R.res" id="114_2h344"]
+[ext_resource type="Animation" uid="uid://qja6k6i2j63x" path="res://entities/cat/Animations/RigRoot_Loco_Swim_R-IP.res" id="115_sixhh"]
+[ext_resource type="Animation" uid="uid://ohjo3nmbjiiy" path="res://entities/cat/Animations/RigRoot_Loco_Trot.res" id="116_a2lm8"]
+[ext_resource type="Animation" uid="uid://bq3vy48lhe82w" path="res://entities/cat/Animations/RigRoot_Loco_Trot-IP.res" id="117_y20mn"]
+[ext_resource type="Animation" uid="uid://cfr16h7uy5hcv" path="res://entities/cat/Animations/RigRoot_Loco_Trot_L.res" id="118_gww8r"]
+[ext_resource type="Animation" uid="uid://0fvril0xfw3m" path="res://entities/cat/Animations/RigRoot_Loco_Trot_L-IP.res" id="119_falji"]
+[ext_resource type="Animation" uid="uid://cvdo3kpgoheot" path="res://entities/cat/Animations/RigRoot_Loco_Trot_R.res" id="120_xkgxg"]
+[ext_resource type="Animation" uid="uid://sdglyum03t8n" path="res://entities/cat/Animations/RigRoot_Loco_Trot_R-IP.res" id="121_sqyy8"]
+[ext_resource type="Animation" uid="uid://biu3dgv4qnfye" path="res://entities/cat/Animations/RigRoot_Loco_Walk.res" id="122_6g24v"]
+[ext_resource type="Animation" uid="uid://bcxiew4fqr7k7" path="res://entities/cat/Animations/RigRoot_Loco_Walk-IP.res" id="123_2mmyb"]
+[ext_resource type="Animation" uid="uid://dp5yg5gvfpyn3" path="res://entities/cat/Animations/RigRoot_Loco_WalkBack.res" id="124_g6j8l"]
+[ext_resource type="Animation" uid="uid://cowthmwu3fh8l" path="res://entities/cat/Animations/RigRoot_Loco_WalkBack-IP.res" id="125_7qan5"]
+[ext_resource type="Animation" uid="uid://ctf36rmdxqlxb" path="res://entities/cat/Animations/RigRoot_Loco_WalkSlow.res" id="126_qoexc"]
+[ext_resource type="Animation" uid="uid://bpdjt6qch8o65" path="res://entities/cat/Animations/RigRoot_Loco_WalkSlow-IP.res" id="127_x46rd"]
+[ext_resource type="Animation" uid="uid://de8frwlrrjspc" path="res://entities/cat/Animations/RigRoot_Loco_WalkSlow_L.res" id="128_ppqro"]
+[ext_resource type="Animation" uid="uid://cvt2frqhx53qg" path="res://entities/cat/Animations/RigRoot_Loco_WalkSlow_L-IP.res" id="129_njs7o"]
+[ext_resource type="Animation" uid="uid://cdo7es1hrffqd" path="res://entities/cat/Animations/RigRoot_Loco_WalkSlow_R.res" id="130_8l2bo"]
+[ext_resource type="Animation" uid="uid://58vuddcjj2bu" path="res://entities/cat/Animations/RigRoot_Loco_WalkSlow_R-IP.res" id="131_pmfyp"]
+[ext_resource type="Animation" uid="uid://cwmmbthbn0ygp" path="res://entities/cat/Animations/RigRoot_Loco_Walk_L.res" id="132_n131g"]
+[ext_resource type="Animation" uid="uid://cya1tkrv7yo8b" path="res://entities/cat/Animations/RigRoot_Loco_Walk_L-IP.res" id="133_ijtkp"]
+[ext_resource type="Animation" uid="uid://brrxb1eait7td" path="res://entities/cat/Animations/RigRoot_Loco_Walk_R.res" id="134_j6i48"]
+[ext_resource type="Animation" uid="uid://b600ciod0x8bs" path="res://entities/cat/Animations/RigRoot_Loco_Walk_R-IP.res" id="135_sdcsy"]
+[ext_resource type="Animation" uid="uid://d3ekia3garam4" path="res://entities/cat/Animations/RigRoot_Lying_00.res" id="136_awchm"]
+[ext_resource type="Animation" uid="uid://dvvqikko8iyo7" path="res://entities/cat/Animations/RigRoot_Lying_00-IP.res" id="137_75e05"]
+[ext_resource type="Animation" uid="uid://co8l5ot73ieh4" path="res://entities/cat/Animations/RigRoot_Lying_01.res" id="138_0vk7c"]
+[ext_resource type="Animation" uid="uid://bn7uo1a3envdk" path="res://entities/cat/Animations/RigRoot_Lying_01-IP.res" id="139_nxm76"]
+[ext_resource type="Animation" uid="uid://ruk08cbo230n" path="res://entities/cat/Animations/RigRoot_Lying_02.res" id="140_q66nc"]
+[ext_resource type="Animation" uid="uid://bjmopcf72nvhb" path="res://entities/cat/Animations/RigRoot_Lying_02-IP.res" id="141_2mgr6"]
+[ext_resource type="Animation" uid="uid://hv0q1sd8wkhy" path="res://entities/cat/Animations/RigRoot_Sitting_00.res" id="142_5yvnk"]
+[ext_resource type="Animation" uid="uid://d0oohsg3dmh3s" path="res://entities/cat/Animations/RigRoot_Sitting_00-IP.res" id="143_eh53c"]
+[ext_resource type="Animation" uid="uid://j1xvl1svfken" path="res://entities/cat/Animations/RigRoot_Sitting_01.res" id="144_pt1c5"]
+[ext_resource type="Animation" uid="uid://chf4pxsq6gh6l" path="res://entities/cat/Animations/RigRoot_Sitting_01-IP.res" id="145_c1ebt"]
+[ext_resource type="Animation" uid="uid://cnpt8f23r80jv" path="res://entities/cat/Animations/RigRoot_Sitting_02.res" id="146_087yh"]
+[ext_resource type="Animation" uid="uid://blnxlddt077vc" path="res://entities/cat/Animations/RigRoot_Sitting_02-IP.res" id="147_fb1ps"]
+[ext_resource type="Animation" uid="uid://wcgfrw38wq0o" path="res://entities/cat/Animations/RigRoot_Sleeping_V1_01.res" id="148_3515n"]
+[ext_resource type="Animation" uid="uid://bvm8blg56fryb" path="res://entities/cat/Animations/RigRoot_Sleeping_V1_01-IP.res" id="149_e3x2j"]
+[ext_resource type="Animation" uid="uid://l4kdm1068urx" path="res://entities/cat/Animations/RigRoot_Sleeping_V2_01.res" id="150_rshg2"]
+[ext_resource type="Animation" uid="uid://loowe6by877j" path="res://entities/cat/Animations/RigRoot_Sleeping_V2_01-IP.res" id="151_y4ud7"]
+[ext_resource type="Animation" uid="uid://fo1lxha50bdv" path="res://entities/cat/Animations/RigRoot_Stand_00.res" id="152_rbuto"]
+[ext_resource type="Animation" uid="uid://cr6od3f3e3ec8" path="res://entities/cat/Animations/RigRoot_Stand_00-IP.res" id="153_jgc3b"]
+[ext_resource type="Animation" uid="uid://7rusffkkqbr3" path="res://entities/cat/Animations/RigRoot_Stand_01.res" id="154_o4bxh"]
+[ext_resource type="Animation" uid="uid://r7u0i5rrekop" path="res://entities/cat/Animations/RigRoot_Stand_01-IP.res" id="155_2dro4"]
+[ext_resource type="Animation" uid="uid://b46y3m06sntoe" path="res://entities/cat/Animations/RigRoot_Stand_02.res" id="156_04aun"]
+[ext_resource type="Animation" uid="uid://blujb5hdpeskn" path="res://entities/cat/Animations/RigRoot_Stand_02-IP.res" id="157_n2mwv"]
+[ext_resource type="Animation" uid="uid://bfntab40agso3" path="res://entities/cat/Animations/RigRoot_Stand_03_LookAround.res" id="158_kg4c7"]
+[ext_resource type="Animation" uid="uid://c8w6tfpeh0oxw" path="res://entities/cat/Animations/RigRoot_Stand_03_LookAround-IP.res" id="159_6nlvw"]
+[ext_resource type="Animation" uid="uid://byykys1otdhn7" path="res://entities/cat/Animations/RigRoot_Stand_Drinking_01.res" id="160_ejxo6"]
+[ext_resource type="Animation" uid="uid://bmx2f0lpmm48j" path="res://entities/cat/Animations/RigRoot_Stand_Drinking_01-IP.res" id="161_hou1c"]
+[ext_resource type="Animation" uid="uid://dwv3s46ypxjyy" path="res://entities/cat/Animations/RigRoot_Stand_Eating_01.res" id="162_q6e3y"]
+[ext_resource type="Animation" uid="uid://b6p77xikmceun" path="res://entities/cat/Animations/RigRoot_Stand_Eating_01-IP.res" id="163_i2ahs"]
+[ext_resource type="Animation" uid="uid://itd31bjj82du" path="res://entities/cat/Animations/RigRoot_Stand_Eating_02.res" id="164_mmolj"]
+[ext_resource type="Animation" uid="uid://bmurvwbdiflu" path="res://entities/cat/Animations/RigRoot_Stand_Eating_02-IP.res" id="165_2lunj"]
+[ext_resource type="Animation" uid="uid://b6gis7j5psysd" path="res://entities/cat/Animations/RigRoot_Trans_Lying_to_Sitting.res" id="166_y327n"]
+[ext_resource type="Animation" uid="uid://7mlcawtpsvk7" path="res://entities/cat/Animations/RigRoot_Trans_Lying_to_Sitting-IP.res" id="167_8komf"]
+[ext_resource type="Animation" uid="uid://g7emr5dxxaqu" path="res://entities/cat/Animations/RigRoot_Trans_Lying_to_Sleeping_V2.res" id="168_xp58g"]
+[ext_resource type="Animation" uid="uid://bk460nxcqju71" path="res://entities/cat/Animations/RigRoot_Trans_Lying_to_Sleeping_V2-IP.res" id="169_6hv8f"]
+[ext_resource type="Animation" uid="uid://mc5okgc76rch" path="res://entities/cat/Animations/RigRoot_Trans_Sitting_to_Lying.res" id="170_x5f43"]
+[ext_resource type="Animation" uid="uid://o8f8cd8j4mfk" path="res://entities/cat/Animations/RigRoot_Trans_Sitting_to_Lying-IP.res" id="171_ep7mm"]
+[ext_resource type="Animation" uid="uid://cx1kvce8lpyhy" path="res://entities/cat/Animations/RigRoot_Trans_Sitting_to_Sleeping_V1.res" id="172_1ndpu"]
+[ext_resource type="Animation" uid="uid://c7r3oiyxeo3lw" path="res://entities/cat/Animations/RigRoot_Trans_Sitting_to_Sleeping_V1-IP.res" id="173_a0u30"]
+[ext_resource type="Animation" uid="uid://ig88l2xm27ta" path="res://entities/cat/Animations/RigRoot_Trans_Sitting_to_Stand.res" id="174_fhk5r"]
+[ext_resource type="Animation" uid="uid://qwax104tkbpe" path="res://entities/cat/Animations/RigRoot_Trans_Sitting_to_Stand-IP.res" id="175_7l70k"]
+[ext_resource type="Animation" uid="uid://p6aknwar17ge" path="res://entities/cat/Animations/RigRoot_Trans_Sleeping_V1_to_Sitting.res" id="176_kd44j"]
+[ext_resource type="Animation" uid="uid://dndg361fv3qyy" path="res://entities/cat/Animations/RigRoot_Trans_Sleeping_V1_to_Sitting-IP.res" id="177_df4h1"]
+[ext_resource type="Animation" uid="uid://dw3g810wkdcdf" path="res://entities/cat/Animations/RigRoot_Trans_Sleeping_V2_to_Lying.res" id="178_pks22"]
+[ext_resource type="Animation" uid="uid://c7aapupbygw8o" path="res://entities/cat/Animations/RigRoot_Trans_Sleeping_V2_to_Lying-IP.res" id="179_bdolo"]
+[ext_resource type="Animation" uid="uid://d2ccjn3nheunc" path="res://entities/cat/Animations/RigRoot_Trans_Stand_to_Sitting.res" id="180_0r6p3"]
+[ext_resource type="Animation" uid="uid://ckhg23tvtrnn7" path="res://entities/cat/Animations/RigRoot_Trans_Stand_to_Sitting-IP.res" id="181_qgow8"]
+[ext_resource type="Animation" uid="uid://cle4xkpgxa2qo" path="res://entities/cat/Animations/RigRoot_Trans_TurnL90.res" id="182_xlbll"]
+[ext_resource type="Animation" uid="uid://sanue01h7411" path="res://entities/cat/Animations/RigRoot_Trans_TurnL90-IP.res" id="183_wgkhc"]
+[ext_resource type="Animation" uid="uid://delp7rxt8u4nb" path="res://entities/cat/Animations/RigRoot_Trans_TurnL90_OnSpot.res" id="184_1a6s3"]
+[ext_resource type="Animation" uid="uid://ce2dewsrwptsh" path="res://entities/cat/Animations/RigRoot_Trans_TurnL90_OnSpot-IP.res" id="185_hgflx"]
+[ext_resource type="Animation" uid="uid://bjeadrq1mdy0x" path="res://entities/cat/Animations/RigRoot_Trans_TurnR90.res" id="186_gr241"]
+[ext_resource type="Animation" uid="uid://dpdrcqv2whahr" path="res://entities/cat/Animations/RigRoot_Trans_TurnR90-IP.res" id="187_g7jou"]
+[ext_resource type="Animation" uid="uid://b7xq6s7d1jwl6" path="res://entities/cat/Animations/RigRoot_Trans_TurnR90_OnSpot.res" id="188_6lye1"]
+[ext_resource type="Animation" uid="uid://d38n7xmuhlxo8" path="res://entities/cat/Animations/RigRoot_Trans_TurnR90_OnSpot-IP.res" id="189_lp6eo"]
+[ext_resource type="Animation" uid="uid://2ta3iwpnwx8j" path="res://entities/cat/Animations/RigRoot_Trans_WalkEnd.res" id="190_xbida"]
+[ext_resource type="Animation" uid="uid://dgewp3qrv3gge" path="res://entities/cat/Animations/RigRoot_Trans_WalkEnd-IP.res" id="191_k4471"]
+[ext_resource type="Animation" uid="uid://elwqwkjn6uos" path="res://entities/cat/Animations/RigRoot_Trans_WalkStart.res" id="192_eo8pa"]
+[ext_resource type="Animation" uid="uid://b5710m6d86c3e" path="res://entities/cat/Animations/RigRoot_Trans_WalkStart-IP.res" id="193_4bx0o"]
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_gx0uc"]
+_data = {
+&"RigRoot|Action_Scratching": ExtResource("1_lxunj"),
+&"RigRoot|Action_Scratching-IP": ExtResource("2_qup7c"),
+&"RigRoot|Action_Urinating": ExtResource("3_tyfpw"),
+&"RigRoot|Action_Urinating-IP": ExtResource("4_812mr"),
+&"RigRoot|Add_Hit_ChestL_Heavy": ExtResource("5_2wi18"),
+&"RigRoot|Add_Hit_ChestL_Light": ExtResource("6_hynb2"),
+&"RigRoot|Add_Hit_ChestR_Heavy": ExtResource("7_y6ep4"),
+&"RigRoot|Add_Hit_ChestR_Light": ExtResource("8_pjsjv"),
+&"RigRoot|Add_Hit_HeadL_Heavy": ExtResource("9_yjgso"),
+&"RigRoot|Add_Hit_HeadL_Light": ExtResource("10_ssgq6"),
+&"RigRoot|Add_Hit_HeadR_Heavy": ExtResource("11_8kv4k"),
+&"RigRoot|Add_Hit_HeadR_Light": ExtResource("12_qyrfe"),
+&"RigRoot|Add_Hit_PelvisL_Heavy": ExtResource("13_lolq0"),
+&"RigRoot|Add_Hit_PelvisL_Light": ExtResource("14_n076g"),
+&"RigRoot|Add_Hit_PelvisR_Heavy": ExtResource("15_kvqiq"),
+&"RigRoot|Add_Hit_PelvisR_Light": ExtResource("16_7w0d8"),
+&"RigRoot|Add_Loco_Left": ExtResource("17_3ds7t"),
+&"RigRoot|Add_Loco_Right": ExtResource("18_dcb3x"),
+&"RigRoot|Add_Look_Down": ExtResource("19_lsgix"),
+&"RigRoot|Add_Look_Left": ExtResource("20_8gubx"),
+&"RigRoot|Add_Look_LeftDown": ExtResource("21_mnmb6"),
+&"RigRoot|Add_Look_LeftUp": ExtResource("22_akv6j"),
+&"RigRoot|Add_Look_Right": ExtResource("23_1ttfg"),
+&"RigRoot|Add_Look_RightDown": ExtResource("24_v67oo"),
+&"RigRoot|Add_Look_RightUp": ExtResource("25_jxwkc"),
+&"RigRoot|Add_Look_Up": ExtResource("26_t715n"),
+&"RigRoot|Add_Neutral": ExtResource("27_463np"),
+&"RigRoot|Agressive_01": ExtResource("28_m5srj"),
+&"RigRoot|Agressive_01-IP": ExtResource("29_vxrik"),
+&"RigRoot|Attack_Agressive_Legs_01": ExtResource("30_xbpmh"),
+&"RigRoot|Attack_Agressive_Legs_01-IP": ExtResource("31_nh8ds"),
+&"RigRoot|Attack_Agressive_Legs_02": ExtResource("32_ifsrf"),
+&"RigRoot|Attack_Agressive_Legs_02-IP": ExtResource("33_mqto1"),
+&"RigRoot|Attack_Left": ExtResource("34_8coas"),
+&"RigRoot|Attack_Left-IP": ExtResource("35_a6imr"),
+&"RigRoot|Attack_Right": ExtResource("36_b7omu"),
+&"RigRoot|Attack_Right-IP": ExtResource("37_rg3d0"),
+&"RigRoot|Death_01": ExtResource("38_c3aso"),
+&"RigRoot|Death_01-IP": ExtResource("39_5sr1r"),
+&"RigRoot|Death_01_Pose": ExtResource("40_gcp5c"),
+&"RigRoot|Death_01_Pose-IP": ExtResource("41_6ki87"),
+&"RigRoot|Death_02": ExtResource("42_tv2ia"),
+&"RigRoot|Death_02-IP": ExtResource("43_e3s1c"),
+&"RigRoot|Death_02_Pose": ExtResource("44_0oixo"),
+&"RigRoot|Death_02_Pose-IP": ExtResource("45_4ybx7"),
+&"RigRoot|Drinking_01": ExtResource("46_b83q7"),
+&"RigRoot|Drinking_01-IP": ExtResource("47_57iu7"),
+&"RigRoot|Eating_01": ExtResource("48_8wkmf"),
+&"RigRoot|Eating_01-IP": ExtResource("49_5i3rb"),
+&"RigRoot|Eating_02": ExtResource("50_0prsj"),
+&"RigRoot|Eating_02-IP": ExtResource("51_wf4d3"),
+&"RigRoot|Hit_ChestL_Heavy": ExtResource("52_80q0f"),
+&"RigRoot|Hit_ChestL_Heavy-IP": ExtResource("53_e248k"),
+&"RigRoot|Hit_ChestL_Light": ExtResource("54_yyapu"),
+&"RigRoot|Hit_ChestL_Light-IP": ExtResource("55_gmblv"),
+&"RigRoot|Hit_ChestR_Heavy": ExtResource("56_cmkmf"),
+&"RigRoot|Hit_ChestR_Heavy-IP": ExtResource("57_f386p"),
+&"RigRoot|Hit_ChestR_Light": ExtResource("58_o8cc7"),
+&"RigRoot|Hit_ChestR_Light-IP": ExtResource("59_tl036"),
+&"RigRoot|Hit_HeadL_Heavy": ExtResource("60_wbwls"),
+&"RigRoot|Hit_HeadL_Heavy-IP": ExtResource("61_sjlhu"),
+&"RigRoot|Hit_HeadL_Light": ExtResource("62_edb5g"),
+&"RigRoot|Hit_HeadL_Light-IP": ExtResource("63_0vchm"),
+&"RigRoot|Hit_HeadR_Heavy": ExtResource("64_m4p54"),
+&"RigRoot|Hit_HeadR_Heavy-IP": ExtResource("65_u6w67"),
+&"RigRoot|Hit_HeadR_Light": ExtResource("66_rvw8g"),
+&"RigRoot|Hit_HeadR_Light-IP": ExtResource("67_653kr"),
+&"RigRoot|Hit_PelvisL_Heavy": ExtResource("68_sostb"),
+&"RigRoot|Hit_PelvisL_Heavy-IP": ExtResource("69_78ouo"),
+&"RigRoot|Hit_PelvisL_Light": ExtResource("70_8767u"),
+&"RigRoot|Hit_PelvisL_Light-IP": ExtResource("71_dodvc"),
+&"RigRoot|Hit_PelvisR_Heavy": ExtResource("72_aqw8q"),
+&"RigRoot|Hit_PelvisR_Heavy-IP": ExtResource("73_r5c0t"),
+&"RigRoot|Hit_PelvisR_Light": ExtResource("74_ekw07"),
+&"RigRoot|Hit_PelvisR_Light-IP": ExtResource("75_28fu4"),
+&"RigRoot|JumpX": ExtResource("76_4qk0a"),
+&"RigRoot|JumpX_End": ExtResource("77_ip8jc"),
+&"RigRoot|JumpX_End-IP": ExtResource("78_itil4"),
+&"RigRoot|JumpX_Loop-IP": ExtResource("79_anx5m"),
+&"RigRoot|JumpX_Start": ExtResource("80_22ci5"),
+&"RigRoot|JumpX_Start-IP": ExtResource("81_wumju"),
+&"RigRoot|Jump_Down": ExtResource("82_052kn"),
+&"RigRoot|Jump_Down-IP": ExtResource("83_ml4hd"),
+&"RigRoot|Jump_Run": ExtResource("84_jdnc5"),
+&"RigRoot|Jump_Run-IP": ExtResource("85_ugbar"),
+&"RigRoot|Jump_Stand": ExtResource("86_scvrr"),
+&"RigRoot|Jump_Stand-IP": ExtResource("87_hhtt6"),
+&"RigRoot|Jump_Trot": ExtResource("88_03o4h"),
+&"RigRoot|Jump_Trot-IP": ExtResource("89_c7omk"),
+&"RigRoot|Jump_Up": ExtResource("90_ctpkr"),
+&"RigRoot|Jump_Up-IP": ExtResource("91_c4mx4"),
+&"RigRoot|Loco_Run": ExtResource("92_x4vnk"),
+&"RigRoot|Loco_Run-IP": ExtResource("93_llnde"),
+&"RigRoot|Loco_Run_L": ExtResource("94_0rjiw"),
+&"RigRoot|Loco_Run_L-IP": ExtResource("95_wri11"),
+&"RigRoot|Loco_Run_R": ExtResource("96_bruoi"),
+&"RigRoot|Loco_Run_R-IP": ExtResource("97_yjpke"),
+&"RigRoot|Loco_Sneak": ExtResource("98_rxcvo"),
+&"RigRoot|Loco_Sneak-IP": ExtResource("99_psd6a"),
+&"RigRoot|Loco_Sneak_L": ExtResource("100_w7bw8"),
+&"RigRoot|Loco_Sneak_L-IP": ExtResource("101_ilgbq"),
+&"RigRoot|Loco_Sneak_R": ExtResource("102_p3idg"),
+&"RigRoot|Loco_Sneak_R-IP": ExtResource("103_samk5"),
+&"RigRoot|Loco_Sprint": ExtResource("104_ucf4u"),
+&"RigRoot|Loco_Sprint-IP": ExtResource("105_ah24o"),
+&"RigRoot|Loco_Sprint_L": ExtResource("106_c71ud"),
+&"RigRoot|Loco_Sprint_L-IP": ExtResource("107_ve6g3"),
+&"RigRoot|Loco_Sprint_R": ExtResource("108_vyja4"),
+&"RigRoot|Loco_Sprint_R-IP": ExtResource("109_s8erx"),
+&"RigRoot|Loco_Swim": ExtResource("110_kbk5n"),
+&"RigRoot|Loco_Swim-IP": ExtResource("111_yk16f"),
+&"RigRoot|Loco_Swim_L": ExtResource("112_is7bw"),
+&"RigRoot|Loco_Swim_L-IP": ExtResource("113_jw8xd"),
+&"RigRoot|Loco_Swim_R": ExtResource("114_2h344"),
+&"RigRoot|Loco_Swim_R-IP": ExtResource("115_sixhh"),
+&"RigRoot|Loco_Trot": ExtResource("116_a2lm8"),
+&"RigRoot|Loco_Trot-IP": ExtResource("117_y20mn"),
+&"RigRoot|Loco_Trot_L": ExtResource("118_gww8r"),
+&"RigRoot|Loco_Trot_L-IP": ExtResource("119_falji"),
+&"RigRoot|Loco_Trot_R": ExtResource("120_xkgxg"),
+&"RigRoot|Loco_Trot_R-IP": ExtResource("121_sqyy8"),
+&"RigRoot|Loco_Walk": ExtResource("122_6g24v"),
+&"RigRoot|Loco_Walk-IP": ExtResource("123_2mmyb"),
+&"RigRoot|Loco_WalkBack": ExtResource("124_g6j8l"),
+&"RigRoot|Loco_WalkBack-IP": ExtResource("125_7qan5"),
+&"RigRoot|Loco_WalkSlow": ExtResource("126_qoexc"),
+&"RigRoot|Loco_WalkSlow-IP": ExtResource("127_x46rd"),
+&"RigRoot|Loco_WalkSlow_L": ExtResource("128_ppqro"),
+&"RigRoot|Loco_WalkSlow_L-IP": ExtResource("129_njs7o"),
+&"RigRoot|Loco_WalkSlow_R": ExtResource("130_8l2bo"),
+&"RigRoot|Loco_WalkSlow_R-IP": ExtResource("131_pmfyp"),
+&"RigRoot|Loco_Walk_L": ExtResource("132_n131g"),
+&"RigRoot|Loco_Walk_L-IP": ExtResource("133_ijtkp"),
+&"RigRoot|Loco_Walk_R": ExtResource("134_j6i48"),
+&"RigRoot|Loco_Walk_R-IP": ExtResource("135_sdcsy"),
+&"RigRoot|Lying_00": ExtResource("136_awchm"),
+&"RigRoot|Lying_00-IP": ExtResource("137_75e05"),
+&"RigRoot|Lying_01": ExtResource("138_0vk7c"),
+&"RigRoot|Lying_01-IP": ExtResource("139_nxm76"),
+&"RigRoot|Lying_02": ExtResource("140_q66nc"),
+&"RigRoot|Lying_02-IP": ExtResource("141_2mgr6"),
+&"RigRoot|Sitting_00": ExtResource("142_5yvnk"),
+&"RigRoot|Sitting_00-IP": ExtResource("143_eh53c"),
+&"RigRoot|Sitting_01": ExtResource("144_pt1c5"),
+&"RigRoot|Sitting_01-IP": ExtResource("145_c1ebt"),
+&"RigRoot|Sitting_02": ExtResource("146_087yh"),
+&"RigRoot|Sitting_02-IP": ExtResource("147_fb1ps"),
+&"RigRoot|Sleeping_V1_01": ExtResource("148_3515n"),
+&"RigRoot|Sleeping_V1_01-IP": ExtResource("149_e3x2j"),
+&"RigRoot|Sleeping_V2_01": ExtResource("150_rshg2"),
+&"RigRoot|Sleeping_V2_01-IP": ExtResource("151_y4ud7"),
+&"RigRoot|Stand_00": ExtResource("152_rbuto"),
+&"RigRoot|Stand_00-IP": ExtResource("153_jgc3b"),
+&"RigRoot|Stand_01": ExtResource("154_o4bxh"),
+&"RigRoot|Stand_01-IP": ExtResource("155_2dro4"),
+&"RigRoot|Stand_02": ExtResource("156_04aun"),
+&"RigRoot|Stand_02-IP": ExtResource("157_n2mwv"),
+&"RigRoot|Stand_03_LookAround": ExtResource("158_kg4c7"),
+&"RigRoot|Stand_03_LookAround-IP": ExtResource("159_6nlvw"),
+&"RigRoot|Stand_Drinking_01": ExtResource("160_ejxo6"),
+&"RigRoot|Stand_Drinking_01-IP": ExtResource("161_hou1c"),
+&"RigRoot|Stand_Eating_01": ExtResource("162_q6e3y"),
+&"RigRoot|Stand_Eating_01-IP": ExtResource("163_i2ahs"),
+&"RigRoot|Stand_Eating_02": ExtResource("164_mmolj"),
+&"RigRoot|Stand_Eating_02-IP": ExtResource("165_2lunj"),
+&"RigRoot|Trans_Lying_to_Sitting": ExtResource("166_y327n"),
+&"RigRoot|Trans_Lying_to_Sitting-IP": ExtResource("167_8komf"),
+&"RigRoot|Trans_Lying_to_Sleeping_V2": ExtResource("168_xp58g"),
+&"RigRoot|Trans_Lying_to_Sleeping_V2-IP": ExtResource("169_6hv8f"),
+&"RigRoot|Trans_Sitting_to_Lying": ExtResource("170_x5f43"),
+&"RigRoot|Trans_Sitting_to_Lying-IP": ExtResource("171_ep7mm"),
+&"RigRoot|Trans_Sitting_to_Sleeping_V1": ExtResource("172_1ndpu"),
+&"RigRoot|Trans_Sitting_to_Sleeping_V1-IP": ExtResource("173_a0u30"),
+&"RigRoot|Trans_Sitting_to_Stand": ExtResource("174_fhk5r"),
+&"RigRoot|Trans_Sitting_to_Stand-IP": ExtResource("175_7l70k"),
+&"RigRoot|Trans_Sleeping_V1_to_Sitting": ExtResource("176_kd44j"),
+&"RigRoot|Trans_Sleeping_V1_to_Sitting-IP": ExtResource("177_df4h1"),
+&"RigRoot|Trans_Sleeping_V2_to_Lying": ExtResource("178_pks22"),
+&"RigRoot|Trans_Sleeping_V2_to_Lying-IP": ExtResource("179_bdolo"),
+&"RigRoot|Trans_Stand_to_Sitting": ExtResource("180_0r6p3"),
+&"RigRoot|Trans_Stand_to_Sitting-IP": ExtResource("181_qgow8"),
+&"RigRoot|Trans_TurnL90": ExtResource("182_xlbll"),
+&"RigRoot|Trans_TurnL90-IP": ExtResource("183_wgkhc"),
+&"RigRoot|Trans_TurnL90_OnSpot": ExtResource("184_1a6s3"),
+&"RigRoot|Trans_TurnL90_OnSpot-IP": ExtResource("185_hgflx"),
+&"RigRoot|Trans_TurnR90": ExtResource("186_gr241"),
+&"RigRoot|Trans_TurnR90-IP": ExtResource("187_g7jou"),
+&"RigRoot|Trans_TurnR90_OnSpot": ExtResource("188_6lye1"),
+&"RigRoot|Trans_TurnR90_OnSpot-IP": ExtResource("189_lp6eo"),
+&"RigRoot|Trans_WalkEnd": ExtResource("190_xbida"),
+&"RigRoot|Trans_WalkEnd-IP": ExtResource("191_k4471"),
+&"RigRoot|Trans_WalkStart": ExtResource("192_eo8pa"),
+&"RigRoot|Trans_WalkStart-IP": ExtResource("193_4bx0o")
+}
+
+[node name="AnimationPlayer" type="AnimationPlayer" unique_id=347298546]
+libraries/ = SubResource("AnimationLibrary_gx0uc")
