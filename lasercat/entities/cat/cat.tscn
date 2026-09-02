@@ -5,12 +5,13 @@
 [ext_resource type="PackedScene" uid="uid://c7wsusd7bdu65" path="res://entities/cat/animation_player.tscn" id="3_xxcxc"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_ip1iv"]
+radius = 0.15
 
 [node name="Cat" type="CharacterBody3D" unique_id=1703446555]
 script = ExtResource("1_ip1iv")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=349346798]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
 shape = SubResource("SphereShape3D_ip1iv")
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=855028615]

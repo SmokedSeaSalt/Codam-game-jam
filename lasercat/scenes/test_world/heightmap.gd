@@ -35,7 +35,7 @@ func _bake_navigation(_mi: MeshInstance3D) -> void:
 	# unclimbable ledges (which is what made pathfinding fall apart).
 	nav_mesh.cell_size = tile_size              # one voxel column per terrain tile
 	nav_mesh.cell_height = tile_size * 0.5
-	nav_mesh.agent_radius = tile_size * 2.0     # small, so narrow ledges survive erosion
+	nav_mesh.agent_radius = tile_size * 4.0     # keep routes wider than the cat's body so it can't wedge
 	nav_mesh.agent_max_climb = tile_size * 1.5  # ~walk <=55 deg slopes, steeper reads as wall
 	nav_mesh.agent_height = 1.0
 	nav_mesh.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS

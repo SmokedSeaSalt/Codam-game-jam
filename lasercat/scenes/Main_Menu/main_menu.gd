@@ -5,6 +5,10 @@ extends Node3D
 @onready var ground: MeshInstance3D = $NavigationRegion3D/Ground
 
 func _ready() -> void:
+	# Hide the OS pointer and feed the laser relative motion only, exactly like the
+	# game scene — otherwise the dot drifts out of sync with the visible cursor.
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	var center := ground.global_position
 	var view_size := 10.0

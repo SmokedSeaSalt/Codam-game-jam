@@ -23,6 +23,8 @@ var current_state: State = State.IDLE
 var idle_timer: float = 0.0
 var _current_anim: String = ""
 var _target_still_for: float = 0.0  # seconds since the laser last moved
+var _last_pos: Vector3 = Vector3.ZERO
+var _stuck_for: float = 0.0         # seconds we've been trying to move but haven't
 
 @onready var nav_agent: NavigationAgent3D = $NavigationAgent3D
 #@onready var model: Node3D = $Cat_body  # rename to match your instanced glb node
@@ -67,8 +69,30 @@ func _physics_process(delta: float) -> void:
 
 	_apply_gravity(delta)
 	move_and_slide()
+	_update_stuck(delta)
 	_update_animation()
 	_update_facing(delta)
+
+# If the cat is commanding movement but physically isn't going anywhere (wedged
+# in a concave bit of the stepped mesh), force a fresh path and, if it has
+# drifted off the navmesh entirely, lift it back onto the nearest mesh point.
+func _update_stuck(delta: float) -> void:
+	var trying := current_state in [State.WALK, State.CHASE, State.POUNCE]
+	var moved_flat := Vector2(global_position.x - _last_pos.x, global_position.z - _last_pos.z).length()
+	_last_pos = global_position
+	if trying and Vector2(velocity.x, velocity.z).length() > 0.1 and moved_flat < 0.005:
+		_stuck_for += delta
+	else:
+		_stuck_for = 0.0
+	if _stuck_for < 0.4:
+		return
+	_stuck_for = 0.0
+	nav_agent.target_position = target_pos  # recompute the route
+	var map := nav_agent.get_navigation_map()
+	if map.is_valid():
+		var on_mesh := NavigationServer3D.map_get_closest_point(map, global_position)
+		if Vector2(on_mesh.x - global_position.x, on_mesh.z - global_position.z).length() > 0.3:
+			global_position = on_mesh + Vector3(0.0, 0.1, 0.0)
 	
 func _apply_gravity(delta: float) -> void:
 	if is_on_floor():
@@ -122,16 +146,7 @@ func _move_toward_nav_target(speed: float) -> void:
 		_stop()
 		return
 
-	# Always query so the agent keeps its path in sync with a moving target.
-	var next_pos: Vector3 = nav_agent.get_next_path_position()
-	var goal: Vector3 = next_pos
-	# When the agent has no real path yet (map still syncing) or the laser sits
-	# just off the navmesh, get_next_path_position() just returns our own spot.
-	# Fall back to steering straight at the laser so the cat never freezes
-	# mid-chase — the terrain is gentle enough for that to look fine.
-	if next_pos.distance_to(global_position) < 0.05:
-		goal = target_pos
-	var direction: Vector3 = goal - global_position
+	var direction: Vector3 = _nav_goal() - global_position
 	direction.y = 0.0
 	if direction.length() < 0.05:
 		_stop()
@@ -141,6 +156,22 @@ func _move_toward_nav_target(speed: float) -> void:
 	var v := speed * clampf(flat / 0.5, 0.35, 1.0)
 	velocity.x = direction.x * v
 	velocity.z = direction.z * v
+
+# A point that is ALWAYS on the navmesh, so the body is never steered straight
+# into a cliff (which is how it wedges). Normally the next path corner; if there
+# is no path — cat drifted off the mesh, or the laser is on unreachable ground —
+# the closest reachable point instead. Falls back to "stay put" if even that is
+# where we already are.
+func _nav_goal() -> Vector3:
+	var next_pos: Vector3 = nav_agent.get_next_path_position()
+	if next_pos.distance_to(global_position) > 0.05:
+		return next_pos
+	var map := nav_agent.get_navigation_map()
+	if map.is_valid():
+		var reachable := NavigationServer3D.map_get_closest_point(map, target_pos)
+		if reachable.distance_to(global_position) > 0.05:
+			return reachable
+	return global_position
 
 # Horizontal (X/Z) gap to the laser. Y is ignored on purpose: the navmesh and
 # the cat's body rest at slightly different heights, so a full 3D check never

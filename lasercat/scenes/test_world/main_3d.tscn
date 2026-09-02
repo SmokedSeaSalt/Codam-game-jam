@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://hoj44xpd0uk4" path="res://scenes/test_world/heightmap.gd" id="3_ndnd3"]
 [ext_resource type="Texture2D" uid="uid://b0su524mos3ah" path="res://scenes/test_world/heightmap_512x512.png" id="4_hmap"]
 [ext_resource type="PackedScene" uid="uid://cmkwouakyghy8" path="res://entities/laser/Laser.tscn" id="5_qgoic"]
+[ext_resource type="PackedScene" uid="uid://gqgkt1tpiijq" path="res://entities/cat/pixel_cat.tscn" id="6_o4vf6"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_3wcom"]
 
@@ -46,10 +47,13 @@ heightmap_texture = ExtResource("4_hmap")
 texture_tile_size = 1.0
 
 [node name="Cat" parent="." unique_id=1703446555 instance=ExtResource("3_l2gwq")]
-transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0)
 
 [node name="Ground" type="MeshInstance3D" parent="." unique_id=1081182626]
 visible = false
 mesh = SubResource("PlaneMesh_ngk0r")
 
 [node name="Laser" parent="." unique_id=2146666949 instance=ExtResource("5_qgoic")]
+
+[node name="PixelCat" parent="." unique_id=60752270 instance=ExtResource("6_o4vf6")]
+pixel_scale = 2
