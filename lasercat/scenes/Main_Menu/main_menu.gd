@@ -3,6 +3,7 @@ extends Node3D
 @onready var laser: Node3D = $Laser
 @onready var cat: CharacterBody3D = $Cat
 @onready var ground: MeshInstance3D = $NavigationRegion3D/Ground
+@onready var cat_bed: Node3D = $CatBed  # path to your imported glb instance
 
 func _ready() -> void:
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
@@ -30,4 +31,4 @@ func _on_target_updated(pos: Vector3) -> void:
 
 func _on_laser_toggled(is_on: bool) -> void:
 	if not is_on:
-		cat.change_state(cat.State.IDLE)
+		cat.target_pos = cat_bed.global_position
