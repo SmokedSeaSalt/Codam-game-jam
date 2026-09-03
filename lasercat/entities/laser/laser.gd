@@ -10,6 +10,7 @@ signal laser_toggled(active: bool)
 @export var screen_margin: float = 48.0  # keep the dot at least this many pixels inside the viewport edge
 @export var dot_height: float = 0.05
 @export var spawn_ahead: float = 0.6  # metres in front of the cat's nose when toggled on
+@export var bounds_half: float = 0.0  # >0: also clamp the dot to ±this on X/Z (keeps it inside the fence)
 
 @onready var dot: MeshInstance3D = $Dot
 
@@ -157,4 +158,8 @@ func _clamp_to_ground(p: Vector3) -> Vector3:
 	var c := ground.global_position
 	p.x = clampf(p.x, c.x - half.x, c.x + half.x)
 	p.z = clampf(p.z, c.z - half.y, c.z + half.y)
+	# Keep the dot inside the fenced play area so the cat never chases it into a wall.
+	if bounds_half > 0.0:
+		p.x = clampf(p.x, -bounds_half, bounds_half)
+		p.z = clampf(p.z, -bounds_half, bounds_half)
 	return p

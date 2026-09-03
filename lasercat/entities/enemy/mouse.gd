@@ -72,6 +72,7 @@ var _model_base_y: float = 0.0     # its resting local Y, restored when not flee
 var _bob_phase: float = 0.0
 var _flee_speed_frac: float = 0.0  # 0..1 ramp from flee_start_speed_frac up to full sprint
 var _slow_flee: bool = false       # this bolt won't accelerate — the cat is allowed to catch it
+var _fence: Node = null            # the FenceRing; polled to catch a mouse that slips outside
 
 @onready var nav: NavigationAgent3D = $NavigationAgent3D
 
@@ -107,6 +108,14 @@ func _apply_run_bob(delta: float) -> void:
 func _physics_process(delta: float) -> void:
 	if _cat == null or not is_instance_valid(_cat):
 		_cat = _find_cat()
+
+	# Hard boundary: a mouse that has ended up outside the fence (bolted through a
+	# seam, shoved by separation, spawned bad) is gone — same as escaping off the
+	# old map edge. main_3d hears `escaped` and drops in a replacement.
+	if not _inside_fence():
+		escaped.emit(self)
+		queue_free()
+		return
 
 	_apply_run_bob(delta)
 
@@ -320,6 +329,15 @@ func _away_from_cat() -> Vector3:
 
 func _distance_from_origin() -> float:
 	return Vector2(global_position.x, global_position.z).length()
+
+# False once the mouse is past the fence line. No fence in the scene => always
+# inside (nothing to enforce).
+func _inside_fence() -> bool:
+	if _fence == null or not is_instance_valid(_fence):
+		_fence = get_tree().get_first_node_in_group("fence")
+	if _fence and _fence.has_method("contains"):
+		return _fence.contains(global_position)
+	return true
 
 func _start_flee() -> void:
 	_mstate = MouseState.FLEE

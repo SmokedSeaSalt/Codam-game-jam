@@ -7,10 +7,11 @@
 //              separate render pass.
 // world_vertex_coords => VERTEX is already world space in vertex(), so the
 // per-instance yaw/tilt/scale is baked in and the reactions are simple world math.
-// shadows_disabled: thin animated blades crossing the big directional-shadow
-// texels flicker between lit/shadowed every frame across the whole field, which
-// is painful — so grass never receives shadows. It still gets a soft NdotL from
-// the sun for form, and the tip-vs-base colour gradient carries most of the read.
+// shadows_disabled: the grass does NOT RECEIVE shadows — thin animated blades
+// crossing the big directional-shadow texels flicker between lit/shadowed every
+// frame across the whole field, which is painful (and darkens it). It still CASTS
+// its own shadow onto the ground (MultiMeshInstance3D.cast_shadow = ON, set in
+// grass_field.gd) and gets a soft NdotL from the sun for form.
 shader_type spatial;
 render_mode cull_disabled, world_vertex_coords, diffuse_lambert, specular_disabled, shadows_disabled;
 
@@ -28,8 +29,10 @@ uniform float wind_strength = 0.08;
 uniform float wind_speed = 0.7;
 uniform vec2 wind_dir = vec2(0.85, 0.5);
 
-uniform vec3 color_base : source_color = vec3(0.13, 0.24, 0.09);
-uniform vec3 color_tip : source_color = vec3(0.42, 0.58, 0.22);
+uniform vec3 color_base : source_color = vec3(0.21, 0.35, 0.14);
+uniform vec3 color_tip : source_color = vec3(0.47, 0.63, 0.26);
+uniform vec3 color_floor : source_color = vec3(0.16, 0.23, 0.11);  // darkest the grass is ever allowed to read
+uniform float ambient_fill = 0.09;   // flat lift added before the colour is posterised
 uniform float pixel_color_steps = 5.0;
 uniform float anim_step = 0.0;       // >0 snaps the sway to this grid (chunky, pixel-art motion). 0 = smooth
 
@@ -99,7 +102,11 @@ void vertex() {
 
 void fragment() {
 	vec3 g = mix(color_base, color_tip, v_height) * v_tint;
+	// Lift the gradient off black (a little less at the very base) so the posterise
+	// step below can't round a dark channel down to zero and speckle the field black.
+	g += ambient_fill * mix(0.65, 1.0, v_height);
 	g = floor(g * pixel_color_steps + 0.5) / pixel_color_steps;
+	g = max(g, color_floor);                 // hard lower bound — grass never reads as pure black
 	ALBEDO = g;
 	ROUGHNESS = 1.0;
 }

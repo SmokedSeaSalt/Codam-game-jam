@@ -30,8 +30,10 @@ const GRASS_SHADER := preload("res://entities/grass/grass.gdshader")
 @export var random_seed: int = 0
 
 @export_group("Look / reaction")
-@export var color_base: Color = Color(0.13, 0.24, 0.09)
-@export var color_tip: Color = Color(0.42, 0.58, 0.22)
+@export var color_base: Color = Color(0.21, 0.35, 0.14)    # blade base — kept well off black
+@export var color_tip: Color = Color(0.47, 0.63, 0.26)
+@export var color_floor: Color = Color(0.16, 0.23, 0.11)   # hard lower bound so no blade ever reads as black
+@export var ambient_fill: float = 0.09                     # flat brightness lift applied before posterising
 @export var dry_patch_amount: float = 0.7               # how warm/pale the thin patches get (0 = uniform)
 @export var pixel_color_steps: float = 5.0
 @export var anim_step: float = 0.0          # >0 = chunky stepped sway; 0 = smooth (stepped motion is hard on the eyes over a whole field)
@@ -84,6 +86,8 @@ func _ready() -> void:
 	_mat.shader = GRASS_SHADER
 	_mat.set_shader_parameter("color_base", color_base)
 	_mat.set_shader_parameter("color_tip", color_tip)
+	_mat.set_shader_parameter("color_floor", color_floor)
+	_mat.set_shader_parameter("ambient_fill", ambient_fill)
 	_mat.set_shader_parameter("pixel_color_steps", pixel_color_steps)
 	_mat.set_shader_parameter("anim_step", anim_step)
 	_mat.set_shader_parameter("wind_strength", wind_strength)
@@ -164,7 +168,9 @@ func _ready() -> void:
 			mmi.multimesh = mm
 			mmi.material_override = _mat
 			mmi.position = centre
-			mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			# Casts its own shadow onto the ground (the shader still opts out of
+			# RECEIVING shadows — see grass.gdshader — so the field stays flicker-free).
+			mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 			mmi.visibility_range_end = cull_distance
 			mmi.visibility_range_end_margin = cull_fade
 			mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF

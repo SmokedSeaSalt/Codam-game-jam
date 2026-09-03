@@ -16,9 +16,12 @@ enum FollowMode { LASER, CAT }
 @export var mouse_scene: PackedScene = preload("res://entities/enemy/mouse.tscn")
 @export var mouse_count: int = 10
 @export var mouse_spawn_min_dist: float = 18.0
-@export var mouse_spawn_max_dist: float = 75.0
-@export var mouse_arena_radius: float = 90.0
+@export var mouse_spawn_max_dist: float = 68.0
+@export var mouse_arena_radius: float = 80.0
 @export var mouse_min_separation: float = 16.0  # don't drop a new mouse this close to an existing one — the map is huge, keep them scattered
+@export var fence_spawn_margin: float = 6.0     # keep fresh mice at least this far inside the fence line
+
+var _fence: Node = null  # the FenceRing, if the scene has one
 
 var cam_offset: Vector3
 var _cat_prev_xz: Vector3  # cat's flat position last frame, for the sprint-drag below
@@ -104,7 +107,7 @@ func _top_up_mice() -> void:
 func _spawn_mouse() -> void:
 	if mouse_scene == null:
 		return
-	var pos := _pick_mouse_spawn()
+	var pos := _clamp_inside_fence(_pick_mouse_spawn())
 	pos.y = _surface_y(pos.x, pos.z) + 0.2
 	var m := mouse_scene.instantiate()
 	# Position BEFORE add_child: Enemy._ready() fires during add_child and captures
@@ -157,6 +160,18 @@ func _clear_of_mice(p: Vector2) -> bool:
 		if Vector2(m.global_position.x, m.global_position.z).distance_to(p) < mouse_min_separation:
 			return false
 	return true
+
+# Pull an XZ spawn point back inside the fence (square) so no mouse is ever
+# dropped on or past the fence line. No-op when the scene has no fence.
+func _clamp_inside_fence(p: Vector3) -> Vector3:
+	if _fence == null or not is_instance_valid(_fence):
+		_fence = get_tree().get_first_node_in_group("fence")
+	if _fence == null or not ("half_extent" in _fence):
+		return p
+	var lim: float = maxf(_fence.half_extent - fence_spawn_margin, 1.0)
+	p.x = clampf(p.x, -lim, lim)
+	p.z = clampf(p.z, -lim, lim)
+	return p
 
 func _surface_y(x: float, z: float) -> float:
 	var params := PhysicsRayQueryParameters3D.create(Vector3(x, 100.0, z), Vector3(x, -100.0, z))
