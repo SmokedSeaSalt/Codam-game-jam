@@ -104,3 +104,20 @@ start_percent = 0.84
 point_a_path = NodePath("../Start")
 point_b_path = NodePath("../End")
 vehicle_model = "Bus1"
+
+[node name="Path2" type="Node3D" parent="Vehicles" unique_id=251261584]
+
+[node name="Vehicle" parent="Vehicles/Path2" unique_id=214395353 node_paths=PackedStringArray("cat") instance=ExtResource("4_hctif")]
+cat = NodePath("../../../Cat")
+speed = 19.885
+loop_mode = 1
+start_percent = 0.45
+point_a_path = NodePath("../Start")
+point_b_path = NodePath("../End")
+vehicle_model = "Car1"
+
+[node name="Start" type="Marker3D" parent="Vehicles/Path2" unique_id=760740944]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34.85325, 0, -12.470007)
+
+[node name="End" type="Marker3D" parent="Vehicles/Path2" unique_id=778529856]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.454468, 0, -14.316959)
