@@ -18,8 +18,12 @@ config/icon="res://icon.svg"
 [display]
 
 window/size/mode=3
-window/stretch/mode="disabled"
 window/stretch/aspect="expand"
+
+[navigation]
+
+3d/warnings/navmesh_cell_size_mismatch=false
+3d/default_cell_height=0.1
 
 [physics]
 
