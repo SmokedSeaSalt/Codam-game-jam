@@ -60,6 +60,7 @@ enum State { IDLE, WALK, CHASE, STALK, PURSUE, POUNCE, RECOVER }
 @export var anim_settle: String = "RigRoot|Sitting_00-IP"
 @export var anim_rest: String = "RigRoot|Lying_00-IP"
 @export var anim_sneak: String = "RigRoot|Loco_Sneak-IP"   # played while stalking / coiling
+@export var anim_sprint: String = "RigRoot|Loco_Sprint-IP" # played while running a bolting mouse down (PURSUE)
 @export var anim_pounce: String = "RigRoot|Jump_Run-IP"    # played on the jump
 @export var anim_pounce_recover: String = "RigRoot|Lying_00-IP"  # low pose held after landing
 @export var anim_pounce_speed_scale: float = 1.5           # play the jump clip this much faster
@@ -71,6 +72,7 @@ enum State { IDLE, WALK, CHASE, STALK, PURSUE, POUNCE, RECOVER }
 # (fix feet sliding forward); raise it if the legs windmill faster than the cat.
 @export var anim_move_stride_speed: float = 2.5
 @export var anim_sneak_stride_speed: float = 1.4
+@export var anim_sprint_stride_speed: float = 6.0
 
 var current_state: State = State.IDLE
 var idle_timer: float = 0.0
@@ -118,7 +120,7 @@ func _ready() -> void:
 	add_to_group("cat")  # mice look this up to run their vision checks against
 	# Several imported clips aren't flagged to loop; force the locomotion one so
 	# the cat keeps trotting instead of freezing after a single gait cycle.
-	for clip_name in [anim_move, anim_sneak]:
+	for clip_name in [anim_move, anim_sneak, anim_sprint]:
 		var clip := anim_player.get_animation(clip_name)
 		if clip:
 			clip.loop_mode = Animation.LOOP_LINEAR
@@ -271,13 +273,22 @@ func _process_stalk(delta: float) -> void:
 		_move_toward_point(goal, stalk_speed)
 
 # Prey has bolted. Run it down along the navmesh (so terrain steps don't wedge
-# the cat) — but the mouse is faster, so this is a chase the cat loses. It ends
-# when the mouse despawns off the map, or opens up pursue_giveup_range.
+# the cat). Most mice accelerate clear and this chase is lost — it ends when they
+# despawn off the map or open up pursue_giveup_range. But a mouse that never sped
+# up (is_catchable_flee) gets run down: closing to pounce_hit_range catches it.
 func _process_pursue(_delta: float) -> void:
 	if not _target_alive():
 		_end_hunt()
 		return
-	if _flat_distance_to(_pounce_target.global_position) > pursue_giveup_range:
+	var flat := _flat_distance_to(_pounce_target.global_position)
+	if flat <= pounce_hit_range and _pounce_target.has_method("is_catchable_flee") \
+			and _pounce_target.is_catchable_flee():
+		if _pounce_target.has_method("on_pounced"):
+			_pounce_target.on_pounced(self)
+		_snap_model_next = true
+		_end_hunt()
+		return
+	if flat > pursue_giveup_range:
 		_end_hunt()
 		return
 	_move_toward_point(_pounce_target.global_position, pursue_speed)
@@ -353,8 +364,8 @@ func _process_pounce(delta: float) -> void:
 	if flat <= pounce_hit_range:
 		if _pounce_target.has_method("on_pounced"):
 			_pounce_target.on_pounced(self)
-		_snap_model_next = true  # plant the model this frame, no easing into the lying pose
-		change_state(State.RECOVER)  # hold a low pose over the kill before resuming
+		_snap_model_next = true  # plant the model this frame
+		_end_hunt()  # straight back to the laser / idle — no lie-down over the kill
 		return
 	# Landed short. If the prey bolted mid-air, the jump's over — chase it (and
 	# lose). Otherwise it just shuffled a little; close the last gap on foot.
@@ -596,8 +607,8 @@ func _update_animation() -> void:
 		speed_scale = _stride_scale(anim_sneak_stride_speed)
 	elif current_state == State.PURSUE:
 		# Flat-out run after the bolting mouse.
-		want = anim_move
-		speed_scale = _stride_scale(anim_move_stride_speed)
+		want = anim_sprint
+		speed_scale = _stride_scale(anim_sprint_stride_speed)
 	elif current_state == State.POUNCE:
 		if not _leaped:
 			# Coiling: hold a near-frozen sneak pose until the jump fires.

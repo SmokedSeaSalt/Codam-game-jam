@@ -14,10 +14,11 @@ enum FollowMode { LASER, CAT }
 # surface a random distance from the cat, between mouse_spawn_min/max_dist away
 # and never further from the origin than mouse_arena_radius.
 @export var mouse_scene: PackedScene = preload("res://entities/enemy/mouse.tscn")
-@export var mouse_count: int = 2
+@export var mouse_count: int = 5
 @export var mouse_spawn_min_dist: float = 15.0
 @export var mouse_spawn_max_dist: float = 38.0
 @export var mouse_arena_radius: float = 45.0
+@export var mouse_min_separation: float = 6.0  # don't drop a new mouse this close to an existing one
 
 var cam_offset: Vector3
 
@@ -115,12 +116,22 @@ func _pick_mouse_spawn() -> Vector3:
 		if p.length() > mouse_arena_radius:
 			p = p.normalized() * mouse_arena_radius
 		var gap := p.distance_to(cat_xz)
-		if gap >= mouse_spawn_min_dist:
+		if gap >= mouse_spawn_min_dist and _clear_of_mice(p):
 			return Vector3(p.x, 0.0, p.y)
 		if gap > best_gap:
 			best_gap = gap
 			best = p
 	return Vector3(best.x, 0.0, best.y)
+
+# True if `p` (XZ) is at least mouse_min_separation from every live mouse, so a
+# fresh spawn doesn't land on top of the pack.
+func _clear_of_mice(p: Vector2) -> bool:
+	for m in get_tree().get_nodes_in_group("mice"):
+		if not (m is Node3D):
+			continue
+		if Vector2(m.global_position.x, m.global_position.z).distance_to(p) < mouse_min_separation:
+			return false
+	return true
 
 func _surface_y(x: float, z: float) -> float:
 	var params := PhysicsRayQueryParameters3D.create(Vector3(x, 100.0, z), Vector3(x, -100.0, z))
