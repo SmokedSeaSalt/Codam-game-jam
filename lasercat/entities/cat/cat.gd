@@ -1,6 +1,6 @@
 extends CharacterBody3D
 
-enum State { IDLE, WALK, CHASE, STALK, POUNCE, RECOVER }
+enum State { IDLE, WALK, CHASE, STALK, PURSUE, POUNCE, RECOVER }
 
 @export var walk_speed: float = 2.0
 @export var chase_speed: float = 5.0
@@ -27,20 +27,30 @@ enum State { IDLE, WALK, CHASE, STALK, POUNCE, RECOVER }
 @export var arrive_distance: float = 0.4   # X/Z gap to a STILL laser that counts as "reached"
 @export var laser_still_time: float = 0.15 # laser must hold motionless this long before the cat sits
 
-# Hunt: enemies trump the laser. When one comes within pounce_detect_range the
-# cat drops the dot and STALKs it — a slow creep at stalk_speed with the sneak
-# animation. Once inside pounce_trigger_range it coils for pounce_windup_time,
-# then JUMPS: a ballistic arc aimed to land on the prey, playing the jump clip,
-# "connecting" once the X/Z gap closes to pounce_hit_range — then holds a low
-# RECOVER pose for pounce_recover_time before going back to the laser.
-@export var pounce_detect_range: float = 6.0
+# Hunt: enemies trump the laser. When a mouse comes within pounce_detect_range the
+# cat drops the dot and STALKs it — a navmesh creep at stalk_speed with the sneak
+# animation, curving toward the prey's blind side. It closes to pounce_launch_range
+# and HOLDS there, facing the prey, until stalk_time has elapsed, then JUMPS: a
+# ballistic arc from that standoff onto the prey. The launch braces the mouse
+# (brace_for_pounce) so it can't bolt in the last split second — the leap always
+# connects — then a low RECOVER pose before returning to the laser.
+# If the mouse spots the cat DURING the stalk it bolts, and the cat drops into
+# PURSUE — a flat-out navmesh chase. The mouse is FASTER, so a pursuit is a losing
+# one: it ends when the mouse despawns off the map (or opens pursue_giveup_range).
+@export var pounce_detect_range: float = 5.0    # get this near a mouse and the laser loses the cat — it commits to the hunt
 @export var flee_chase_range: float = 14.0       # a mouse already sprinting is noticed (and chased) from this far — keep it > the mouse's fov_range so it can't just outrun the cat's attention
-@export var stalk_speed: float = 1.8             # deliberate creep; anim is time-scaled to match
-@export var pounce_trigger_range: float = 2.8   # jump launches from here — bigger = a longer leap
-@export var pounce_windup_time: float = 0.4     # coil/pause before the jump
-@export var pounce_giveup_range: float = 9.0    # prey got this far away: abandon the hunt
+@export var stalk_speed: float = 1.5             # navmesh creep toward the standoff point; anim is time-scaled to match
+@export var stalk_time: float = 1.5             # seconds of stalking before the jump is allowed to fire
+@export var stalk_approach_offset: float = 1.0  # creep toward a point this far behind the prey, so the cat comes at its blind side
+@export var pounce_launch_range: float = 4.5    # close to this gap, then hold and stalk in place — the jump launches from here
+@export var pounce_windup_time: float = 0.0     # extra coil/pause after the stalk before the jump — the stalk IS the wind-up now
+@export var pounce_giveup_range: float = 14.0   # prey (that hasn't bolted) got this far away: abandon the hunt — keep it > pounce_detect_range
+@export var pursue_speed: float = 7.0           # PURSUE run speed — a lot quicker than the laser chase, but kept under the mouse's sprint_speed so it never catches up
+@export var pursue_giveup_range: float = 20.0   # a bolting mouse got this far: give up the losing chase (it'll usually despawn first)
 @export var pounce_hit_range: float = 0.6       # X/Z gap that counts as landing on the prey
-@export var pounce_arc_height: float = 0.15     # how high (m) the arc peaks — at the MIDPOINT, then it comes back down onto the prey
+@export var pounce_arc_height: float = 0.9      # how high (m) the leap peaks — at the MIDPOINT, then it comes back down onto the prey
+@export var pounce_overshoot: float = 0.25      # aim the leap this far past the prey so the cat lands squarely on it, not at its feet
+@export var pounce_max_reach: float = 5.5       # cap on the leap's horizontal distance — keep it above pounce_launch_range
 @export var pounce_speed_cap_mult: float = 3.0  # ceiling on the launch's horizontal speed, as a multiple of pounce_speed
 @export var pounce_recover_time: float = 1.0    # seconds crouched over the kill before resuming
 
@@ -69,6 +79,8 @@ var _target_still_for: float = 0.0  # seconds since the laser last moved
 var _last_pos: Vector3 = Vector3.ZERO
 var _stuck_for: float = 0.0         # seconds we've been trying to move but haven't
 var _pounce_target: Node3D = null
+var _stalk_timer: float = 0.0       # counts down stalk_time; the jump fires when it hits 0
+var _nav_goal_point: Vector3 = Vector3(INF, INF, INF)  # last point handed to the nav agent, to throttle re-paths
 var _windup_timer: float = 0.0      # counts down the crouch before the leap
 var _recover_timer: float = 0.0     # counts down the low pose held after landing a pounce
 var _leaped: bool = false           # true once the hop has been applied this pounce
@@ -91,7 +103,11 @@ var target_pos: Vector3 = Vector3.ZERO:
 		# surface raycast near a cliff edge must not keep waking the cat.
 		var moved := Vector2(value.x - target_pos.x, value.z - target_pos.z).length() > 0.03
 		target_pos = value
-		nav_agent.target_position = value
+		# Don't hijack the nav agent while hunting — the hunt states point it at the
+		# prey, and _end_hunt re-points it at the dot when they finish. (Without this
+		# guard, leading the laser mid-chase yanks the cat's heading toward the dot.)
+		if current_state not in [State.STALK, State.PURSUE, State.POUNCE, State.RECOVER]:
+			nav_agent.target_position = value
 		if moved:
 			# Laser is being led: keep chasing (and don't sit) until it holds still.
 			_target_still_for = 0.0
@@ -113,7 +129,7 @@ func _physics_process(delta: float) -> void:
 	_target_still_for += delta  # reset to 0 by the target_pos setter whenever the laser moves
 
 	# Enemies win over the laser: if one is close enough, break off and start stalking.
-	if current_state not in [State.STALK, State.POUNCE, State.RECOVER]:
+	if current_state not in [State.STALK, State.PURSUE, State.POUNCE, State.RECOVER]:
 		var prey := _closest_enemy_in_range()
 		if prey:
 			_begin_stalk(prey)
@@ -127,6 +143,8 @@ func _physics_process(delta: float) -> void:
 			_process_chase(delta)
 		State.STALK:
 			_process_stalk(delta)
+		State.PURSUE:
+			_process_pursue(delta)
 		State.POUNCE:
 			_process_pounce(delta)
 		State.RECOVER:
@@ -145,7 +163,7 @@ func _physics_process(delta: float) -> void:
 func _update_stuck(delta: float) -> void:
 	# Pounces are short and deliberately straight-line, so the navmesh-unwedge
 	# logic below stays out of them.
-	var trying := current_state in [State.WALK, State.CHASE]
+	var trying := current_state in [State.WALK, State.CHASE, State.STALK, State.PURSUE]
 	var moved_flat := Vector2(global_position.x - _last_pos.x, global_position.z - _last_pos.z).length()
 	_last_pos = global_position
 	if trying and Vector2(velocity.x, velocity.z).length() > 0.1 and moved_flat < 0.005:
@@ -155,7 +173,10 @@ func _update_stuck(delta: float) -> void:
 	if _stuck_for < 0.4:
 		return
 	_stuck_for = 0.0
-	nav_agent.target_position = target_pos  # recompute the route
+	# Recompute the route — toward the prey if we're hunting, else the dot.
+	nav_agent.target_position = (_pounce_target.global_position
+		if current_state in [State.STALK, State.PURSUE] and _target_alive() else target_pos)
+	_nav_goal_point = Vector3(INF, INF, INF)  # let _move_toward_point re-issue next frame
 	var map := nav_agent.get_navigation_map()
 	if map.is_valid():
 		var on_mesh := NavigationServer3D.map_get_closest_point(map, global_position)
@@ -182,12 +203,17 @@ func change_state(new_state: State) -> void:
 		State.CHASE:
 			pass
 		State.STALK:
-			pass
+			_stalk_timer = stalk_time  # restart the pre-jump creep clock
+			_nav_goal_point = Vector3(INF, INF, INF)  # force a fresh path
+		State.PURSUE:
+			_nav_goal_point = Vector3(INF, INF, INF)
 		State.POUNCE:
-			# A fleeing mouse won't wait around — skip the coil and leap straight away.
-			_windup_timer = 0.0 if _prey_fleeing() else pounce_windup_time
+			_windup_timer = pounce_windup_time
 			_leaped = false
 			_stop()
+			# Commit: pin the prey so it can't bolt in the split second before we land.
+			if _target_alive() and _pounce_target.has_method("brace_for_pounce"):
+				_pounce_target.brace_for_pounce()
 		State.RECOVER:
 			_recover_timer = pounce_recover_time
 			_stop()
@@ -212,31 +238,68 @@ func _process_chase(_delta: float) -> void:
 		return
 	_move_toward_nav_target(chase_speed)
 
-# Move toward the prey. Normally a slow, deliberate creep with the sneak
-# animation — but the moment the prey bolts (is_fleeing()) this becomes a
-# flat-out run at chase_speed so the cat, which is faster than any mouse, reels
-# it back in. Bails if the target is gone or has opened up too much of a gap;
-# switches to POUNCE once it's close.
-func _process_stalk(_delta: float) -> void:
+# Creep (on the navmesh) toward the prey's blind side, hold at pounce_launch_range
+# once there, and JUMP when stalk_time has elapsed. The instant the mouse spots
+# the cat and bolts, abandon the stalk and drop into PURSUE — no jump. Bails if a
+# still-unaware mouse somehow gets far away.
+func _process_stalk(delta: float) -> void:
 	if not _target_alive():
 		_end_hunt()
 		return
-	var chasing := _prey_fleeing()
+	if _prey_fleeing():
+		change_state(State.PURSUE)
+		return
 	var flat := _flat_distance_to(_pounce_target.global_position)
-	# Don't give up mid-pursuit just because the mouse got a head start.
-	if flat > (pounce_giveup_range * 2.0 if chasing else pounce_giveup_range):
+	if flat > pounce_giveup_range:
 		_end_hunt()
 		return
-	if flat <= pounce_trigger_range:
+	_stalk_timer -= delta
+	if _stalk_timer <= 0.0 and flat <= pounce_max_reach:
 		change_state(State.POUNCE)
 		return
-	var dir: Vector3 = _pounce_target.global_position - global_position
+	if flat <= pounce_launch_range:
+		# At the standoff: hold position, keep facing the prey, let the sneak play.
+		_stop()
+		_face_point(_pounce_target.global_position, delta)
+	else:
+		# Aim a bit behind the prey so the approach curves onto its blind side.
+		var goal: Vector3 = _pounce_target.global_position
+		var prey_fwd: Vector3 = _pounce_target.global_transform.basis.z
+		prey_fwd.y = 0.0
+		if prey_fwd.length() > 0.01:
+			goal -= prey_fwd.normalized() * stalk_approach_offset
+		_move_toward_point(goal, stalk_speed)
+
+# Prey has bolted. Run it down along the navmesh (so terrain steps don't wedge
+# the cat) — but the mouse is faster, so this is a chase the cat loses. It ends
+# when the mouse despawns off the map, or opens up pursue_giveup_range.
+func _process_pursue(_delta: float) -> void:
+	if not _target_alive():
+		_end_hunt()
+		return
+	if _flat_distance_to(_pounce_target.global_position) > pursue_giveup_range:
+		_end_hunt()
+		return
+	_move_toward_point(_pounce_target.global_position, pursue_speed)
+
+# Like _move_toward_nav_target but for an arbitrary point (a stalk standoff, or
+# the fleeing mouse) instead of the laser: path to it across the navmesh so
+# terrain steps don't wedge the cat. The nav target is only re-issued when the
+# goal shifts a fair bit, so a moving prey doesn't thrash the pathfinder every
+# frame; a straight line covers the gap until the first path is ready.
+func _move_toward_point(p: Vector3, speed: float) -> void:
+	if _nav_goal_point.distance_to(p) > 0.4:
+		nav_agent.target_position = p
+		_nav_goal_point = p
+	var dir: Vector3 = nav_agent.get_next_path_position() - global_position
 	dir.y = 0.0
+	if dir.length() < 0.2:
+		dir = p - global_position
+		dir.y = 0.0
 	if dir.length() < 0.05:
 		_stop()
 		return
 	dir = dir.normalized()
-	var speed := chase_speed if chasing else stalk_speed
 	velocity.x = dir.x * speed
 	velocity.z = dir.z * speed
 
@@ -257,32 +320,33 @@ func _process_pounce(delta: float) -> void:
 	var flat := to.length()
 
 	if not _leaped:
-		# Launch a real parabola: rise to pounce_arc_height at the MIDPOINT and
-		# come back down to launch height exactly as the horizontal gap closes, so
-		# the cat descends onto the prey instead of arriving at its apex. Pick the
-		# vertical speed for that peak height, derive the air time from it, then set
-		# the horizontal speed to cover `flat` in that same time. Gravity in
-		# _apply_gravity handles the fall — we never touch velocity.y again.
+		# Launch a real parabola: rise to pounce_arc_height at the MIDPOINT and come
+		# back down to launch height as the horizontal gap closes, so the cat
+		# descends ONTO the prey instead of stalling at its apex above it. Aim a
+		# little past the prey (pounce_overshoot) so it lands squarely on the mouse.
+		# Pick the vertical speed for that peak height, derive the air time from it,
+		# then set the horizontal speed to cover that reach in the same time.
+		# Gravity in _apply_gravity handles the fall — we never touch velocity.y again.
 		_leaped = true
 		var h := maxf(pounce_arc_height, 0.02)
 		var air_time := 2.0 * sqrt(2.0 * h / gravity)
-		_leap_speed = minf(flat / air_time, pounce_speed * pounce_speed_cap_mult)
 		var dir := to.normalized() if flat > 0.01 else Vector3(sin(_facing_angle), 0.0, cos(_facing_angle))
+		var reach := minf(flat + pounce_overshoot, pounce_max_reach)
+		_leap_speed = minf(reach / air_time, pounce_speed * pounce_speed_cap_mult)
 		velocity.x = dir.x * _leap_speed
 		velocity.z = dir.z * _leap_speed
 		velocity.y = sqrt(2.0 * gravity * h)
 		return
 
-	# Still in the air (velocity.y > 0 also covers the first frame, before the body
-	# has physically left the floor): steer the horizontal velocity at the prey,
-	# but once we're right over it just drop straight down. Leave Y to gravity.
+	# Airborne (velocity.y > 0 also covers the first frame, before the body has
+	# physically left the floor): keep driving the horizontal velocity straight at
+	# the prey for the WHOLE arc so the cat comes down on the mouse — cutting
+	# forward speed early is what left it hanging at the apex on top of the prey.
+	# Y is left to gravity.
 	if not is_on_floor() or velocity.y > 0.0:
-		if flat <= pounce_hit_range:
-			_stop()
-		else:
-			var d := to.normalized() if flat > 0.01 else Vector3.ZERO
-			velocity.x = d.x * _leap_speed
-			velocity.z = d.z * _leap_speed
+		var d := to.normalized() if flat > 0.01 else Vector3(sin(_facing_angle), 0.0, cos(_facing_angle))
+		velocity.x = d.x * _leap_speed
+		velocity.z = d.z * _leap_speed
 		return
 
 	# Feet are back on the ground. Landed on the prey -> that's the pounce.
@@ -292,7 +356,11 @@ func _process_pounce(delta: float) -> void:
 		_snap_model_next = true  # plant the model this frame, no easing into the lying pose
 		change_state(State.RECOVER)  # hold a low pose over the kill before resuming
 		return
-	# Landed short (prey moved, or the arc speed was capped): close the gap on foot.
+	# Landed short. If the prey bolted mid-air, the jump's over — chase it (and
+	# lose). Otherwise it just shuffled a little; close the last gap on foot.
+	if _prey_fleeing():
+		change_state(State.PURSUE)
+		return
 	var dir2 := to.normalized() if flat > 0.01 else Vector3.ZERO
 	velocity.x = dir2.x * pounce_speed
 	velocity.z = dir2.z * pounce_speed
@@ -337,11 +405,17 @@ func _begin_stalk(target: Node3D) -> void:
 	change_state(State.STALK)
 
 func _end_hunt() -> void:
+	# If we bail with the prey still alive (rare — a braced mouse almost always
+	# gets caught), let it move again.
+	if _target_alive() and _pounce_target.has_method("release_pounce"):
+		_pounce_target.release_pounce()
 	_pounce_target = null
 	_windup_timer = 0.0
 	_recover_timer = 0.0
 	_leaped = false
 	_stop()
+	_nav_goal_point = Vector3(INF, INF, INF)
+	nav_agent.target_position = target_pos  # point the agent back at the dot
 	# Back to business: chase the dot if the laser's on, otherwise settle.
 	change_state(State.WALK if laser_active else State.IDLE)
 
@@ -518,13 +592,12 @@ func _update_animation() -> void:
 		want = anim_settle if idle_timer > 0.0 else anim_rest
 		hold = true
 	elif current_state == State.STALK:
-		if _prey_fleeing():
-			# Running the mouse down, not creeping — use the trot clip.
-			want = anim_move
-			speed_scale = _stride_scale(anim_move_stride_speed)
-		else:
-			want = anim_sneak
-			speed_scale = _stride_scale(anim_sneak_stride_speed)
+		want = anim_sneak
+		speed_scale = _stride_scale(anim_sneak_stride_speed)
+	elif current_state == State.PURSUE:
+		# Flat-out run after the bolting mouse.
+		want = anim_move
+		speed_scale = _stride_scale(anim_move_stride_speed)
 	elif current_state == State.POUNCE:
 		if not _leaped:
 			# Coiling: hold a near-frozen sneak pose until the jump fires.
