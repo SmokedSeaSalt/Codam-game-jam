@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cgyc2vs4be1jh"]
+
+[ext_resource type="PackedScene" uid="uid://urr8itkerofp" path="res://assets/sprites/Infrastructure/floor_stones_tilleable.glb" id="1_ceqvh"]
+
+[node name="Sketchfab_Scene" unique_id=624322158 instance=ExtResource("1_ceqvh")]
+transform = Transform3D(0.035, 0, 0, 0, 0.035, 0, 0, 0, 0.035, 0, 0, 0)
