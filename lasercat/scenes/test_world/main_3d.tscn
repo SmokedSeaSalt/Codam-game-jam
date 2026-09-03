@@ -62,14 +62,12 @@ navigation_mesh = SubResource("NavigationMesh_ground")
 area_size = 320.0
 chunk_div = 16
 
-[node name="FenceRing" parent="." instance=ExtResource("8_fence")]
-half_extent = 95.0
+[node name="FenceRing" parent="." unique_id=1036523840 instance=ExtResource("8_fence")]
 
 [node name="Cat" parent="." unique_id=1703446555 instance=ExtResource("3_l2gwq")]
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0.009077311, 0.009087563, -0.0076612234)
 
 [node name="Laser" parent="." unique_id=2146666949 instance=ExtResource("5_qgoic")]
-bounds_half = 90.0
 
 [node name="PixelCat" parent="." unique_id=60752270 instance=ExtResource("6_o4vf6")]
 pixel_scale = 2
