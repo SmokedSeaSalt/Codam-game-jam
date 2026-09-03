@@ -199,6 +199,8 @@ func _process_idle(delta: float) -> void:
 		idle_timer -= delta  # counts down the "sitting" beat, then _update_animation lies down
 
 func _process_walk(_delta: float) -> void:
+	var goal := _nav_goal()
+	print("WALK — goal: ", goal, " pos: ", global_position, " vel: ", velocity, " on_floor: ", is_on_floor())
 	if _should_sit():
 		_stop()
 		change_state(State.IDLE)

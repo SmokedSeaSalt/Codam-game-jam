@@ -1,0 +1,894 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://ct30m6t7uv4po"
+path="res://.godot/imported/Infrastructure(Cars&Houses).glb-304e56eeca00c072516523e5e70d3d39.scn"
+
+[deps]
+
+source_file="res://assets/Infrastructure(Cars&Houses).glb"
+dest_files=["res://.godot/imported/Infrastructure(Cars&Houses).glb-304e56eeca00c072516523e5e70d3d39.scn"]
+
+[params]
+
+nodes/root_type=""
+nodes/root_name=""
+nodes/root_script=null
+mesh_library/use_node_names_as_mesh_names=false
+array_mesh/deduplicate_surfaces=true
+nodes/apply_root_scale=true
+nodes/root_scale=1.0
+nodes/import_as_skeleton_bones=false
+nodes/use_name_suffixes=true
+nodes/use_node_type_suffixes=true
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=false
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+materials/extract=0
+materials/extract_format=0
+materials/extract_path=""
+_subresources={
+"meshes": {
+"Sketchfab_Scene_Ambulance_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Ambulance_Mat_0.res",
+"save_to_file/path": "uid://bro312w71mebb"
+},
+"Sketchfab_Scene_Barrier_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Barrier_Mat_0.res",
+"save_to_file/path": "uid://cd6tegrawlsqb"
+},
+"Sketchfab_Scene_Big_Road_Sing_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Big_Road_Sing_1_Mat_0.res",
+"save_to_file/path": "uid://5ecg58esc84v"
+},
+"Sketchfab_Scene_Big_Road_Sing_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Big_Road_Sing_2_Mat_0.res",
+"save_to_file/path": "uid://diwgqa5t6xjhu"
+},
+"Sketchfab_Scene_Box_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Box_1_Mat_0.res",
+"save_to_file/path": "uid://cpiee31v0dmrv"
+},
+"Sketchfab_Scene_Box_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Box_2_Mat_0.res",
+"save_to_file/path": "uid://dk1ec6daik5x"
+},
+"Sketchfab_Scene_Box_3_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Box_3_Mat_0.res",
+"save_to_file/path": "uid://bp3iplhm728lh"
+},
+"Sketchfab_Scene_Box_4_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Box_4_Mat_0.res",
+"save_to_file/path": "uid://buywts2phcm28"
+},
+"Sketchfab_Scene_Building_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Building_1_Mat_0.res",
+"save_to_file/path": "uid://b2bfo2v74u1o0"
+},
+"Sketchfab_Scene_Building_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Building_2_Mat_0.res",
+"save_to_file/path": "uid://cr5lcvu47h2ww"
+},
+"Sketchfab_Scene_Building_3_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Building_3_Mat_0.res",
+"save_to_file/path": "uid://c7fgddddt415r"
+},
+"Sketchfab_Scene_Building_4_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Building_4_Mat_0.res",
+"save_to_file/path": "uid://bnkxtjnuq1hkn"
+},
+"Sketchfab_Scene_Building_5_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Building_5_Mat_0.res",
+"save_to_file/path": "uid://bsd5xj18de2pu"
+},
+"Sketchfab_Scene_Building_6_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Building_6_Mat_0.res",
+"save_to_file/path": "uid://bkbetp5ybs5it"
+},
+"Sketchfab_Scene_Building_7_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Building_7_Mat_0.res",
+"save_to_file/path": "uid://bbd252g2ue3h3"
+},
+"Sketchfab_Scene_Building_8_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Building_8_Mat_0.res",
+"save_to_file/path": "uid://cqntjc52wc0xk"
+},
+"Sketchfab_Scene_Building_9_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Building_9_Mat_0.res",
+"save_to_file/path": "uid://tyd6eeif2va4"
+},
+"Sketchfab_Scene_Bulldozer_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Bulldozer_Mat_0.res",
+"save_to_file/path": "uid://bffwhj4el2ytv"
+},
+"Sketchfab_Scene_Bus_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Bus_1_Mat_0.res",
+"save_to_file/path": "uid://cpw5dygdeevag"
+},
+"Sketchfab_Scene_Bus_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Bus_2_Mat_0.res",
+"save_to_file/path": "uid://bskaq4fc4i75b"
+},
+"Sketchfab_Scene_Bus_3_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Bus_3_Mat_0.res",
+"save_to_file/path": "uid://cai6malyevd6s"
+},
+"Sketchfab_Scene_Bus_Stop_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Bus_Stop_Mat_0.res",
+"save_to_file/path": "uid://dxf3ugy0mphe1"
+},
+"Sketchfab_Scene_Car_1_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Car_1_1_Mat_0.res",
+"save_to_file/path": "uid://blbnrpxxtdcb0"
+},
+"Sketchfab_Scene_Car_1_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Car_1_2_Mat_0.res",
+"save_to_file/path": "uid://cvb0b2y32ek7c"
+},
+"Sketchfab_Scene_Car_1_3_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Car_1_3_Mat_0.res",
+"save_to_file/path": "uid://b1m4xdtrmj1d5"
+},
+"Sketchfab_Scene_Car_2_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Car_2_1_Mat_0.res",
+"save_to_file/path": "uid://bp38sgrirn6yn"
+},
+"Sketchfab_Scene_Car_2_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Car_2_2_Mat_0.res",
+"save_to_file/path": "uid://nj1tnou4wf0r"
+},
+"Sketchfab_Scene_Car_2_3_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Car_2_3_Mat_0.res",
+"save_to_file/path": "uid://dft1l4wwao0h"
+},
+"Sketchfab_Scene_Car_3_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Car_3_1_Mat_0.res",
+"save_to_file/path": "uid://dxean3s8hupi"
+},
+"Sketchfab_Scene_Car_3_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Car_3_2_Mat_0.res",
+"save_to_file/path": "uid://dse3ehr8fkrtu"
+},
+"Sketchfab_Scene_Car_3_3_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Car_3_3_Mat_0.res",
+"save_to_file/path": "uid://0bj5fgh7kj14"
+},
+"Sketchfab_Scene_Cone_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Cone_Mat_0.res",
+"save_to_file/path": "uid://cpu38hoi1lkf0"
+},
+"Sketchfab_Scene_Excavator_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Excavator_Mat_0.res",
+"save_to_file/path": "uid://b5mmwd7o0k4up"
+},
+"Sketchfab_Scene_Fence_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Fence_Mat_0.res",
+"save_to_file/path": "uid://dvq6yfgg3flg4"
+},
+"Sketchfab_Scene_Fire_Truck_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Fire_Truck_Mat_0.res",
+"save_to_file/path": "uid://dulxpg2mx467v"
+},
+"Sketchfab_Scene_Fuel_Barrel_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Fuel_Barrel_Mat_0.res",
+"save_to_file/path": "uid://c2hw5r0gcrsg4"
+},
+"Sketchfab_Scene_Gas_Truck_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Gas_Truck_Mat_0.res",
+"save_to_file/path": "uid://dophcxqpmk8ad"
+},
+"Sketchfab_Scene_Hot_Dog_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Hot_Dog_Mat_0.res",
+"save_to_file/path": "uid://bvgnggubfg5fl"
+},
+"Sketchfab_Scene_Hydrant_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Hydrant_Mat_0.res",
+"save_to_file/path": "uid://xvpksxokqqvx"
+},
+"Sketchfab_Scene_Light_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Light_Mat_0.res",
+"save_to_file/path": "uid://cujjyydkktyeb"
+},
+"Sketchfab_Scene_Main_Truck_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Main_Truck_1_Mat_0.res",
+"save_to_file/path": "uid://t4smtbgdohwu"
+},
+"Sketchfab_Scene_Main_Truck_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Main_Truck_2_Mat_0.res",
+"save_to_file/path": "uid://bhvy0mvevflme"
+},
+"Sketchfab_Scene_Main_Truck_3_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Main_Truck_3_Mat_0.res",
+"save_to_file/path": "uid://rnri0cdme0p5"
+},
+"Sketchfab_Scene_Main_Truck_4_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Main_Truck_4_Mat_0.res",
+"save_to_file/path": "uid://cxtuvbuqxfp1t"
+},
+"Sketchfab_Scene_Newspaper_Stand_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Newspaper_Stand_Mat_0.res",
+"save_to_file/path": "uid://cvhae4jhk3vkp"
+},
+"Sketchfab_Scene_Pickup_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Pickup_1_Mat_0.res",
+"save_to_file/path": "uid://bjj733j51r6x5"
+},
+"Sketchfab_Scene_Pickup_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Pickup_2_Mat_0.res",
+"save_to_file/path": "uid://by3aa07m0ki7t"
+},
+"Sketchfab_Scene_Pickup_3_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Pickup_3_Mat_0.res",
+"save_to_file/path": "uid://br8phurs1ge1o"
+},
+"Sketchfab_Scene_Police_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Police_Mat_0.res",
+"save_to_file/path": "uid://dad2dnfpxtn71"
+},
+"Sketchfab_Scene_Road_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_1_Mat_0.res",
+"save_to_file/path": "uid://q82ky8qyh8y1"
+},
+"Sketchfab_Scene_Road_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_2_Mat_0.res",
+"save_to_file/path": "uid://d0ifpcnp4nnxw"
+},
+"Sketchfab_Scene_Road_3_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_3_Mat_0.res",
+"save_to_file/path": "uid://b358qr6h6shhw"
+},
+"Sketchfab_Scene_Road_Barrier_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Barrier_Mat_0.res",
+"save_to_file/path": "uid://cp2pxnp2ue41w"
+},
+"Sketchfab_Scene_Road_Crossroads_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Crossroads_1_Mat_0.res",
+"save_to_file/path": "uid://hfxitlylr4ds"
+},
+"Sketchfab_Scene_Road_Crossroads_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Crossroads_2_Mat_0.res",
+"save_to_file/path": "uid://cp36nd43y1360"
+},
+"Sketchfab_Scene_Road_Crossroads_3_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Crossroads_3_Mat_0.res",
+"save_to_file/path": "uid://blbkdqg2myacf"
+},
+"Sketchfab_Scene_Road_Crossroads_4_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Crossroads_4_Mat_0.res",
+"save_to_file/path": "uid://dfwbqip3l5lpc"
+},
+"Sketchfab_Scene_Road_Crosswalk_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Crosswalk_Mat_0.res",
+"save_to_file/path": "uid://wy0na2uodny1"
+},
+"Sketchfab_Scene_Road_Manhole_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Manhole_1_Mat_0.res",
+"save_to_file/path": "uid://bamfwjx76160j"
+},
+"Sketchfab_Scene_Road_Manhole_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Manhole_2_Mat_0.res",
+"save_to_file/path": "uid://ekhhlnkinyll"
+},
+"Sketchfab_Scene_Road_Railroad_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Railroad_1_Mat_0.res",
+"save_to_file/path": "uid://b1vd7n7byexmc"
+},
+"Sketchfab_Scene_Road_Railroad_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Railroad_2_Mat_0.res",
+"save_to_file/path": "uid://dk4sdxve51e2e"
+},
+"Sketchfab_Scene_Road_Roadworks_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Roadworks_Mat_0.res",
+"save_to_file/path": "uid://calgieoolhoh8"
+},
+"Sketchfab_Scene_Road_Sign_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Sign_1_Mat_0.res",
+"save_to_file/path": "uid://denljtg377ndp"
+},
+"Sketchfab_Scene_Road_Sign_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Sign_2_Mat_0.res",
+"save_to_file/path": "uid://m5afyurmaxsa"
+},
+"Sketchfab_Scene_Road_Sign_3_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Sign_3_Mat_0.res",
+"save_to_file/path": "uid://cy5vhmqwvgsni"
+},
+"Sketchfab_Scene_Road_Sign_4_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Sign_4_Mat_0.res",
+"save_to_file/path": "uid://bepn24nbtwwmm"
+},
+"Sketchfab_Scene_Road_Sign_5_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Sign_5_Mat_0.res",
+"save_to_file/path": "uid://cmganr6lfpb2"
+},
+"Sketchfab_Scene_Road_Sign_6_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Sign_6_Mat_0.res",
+"save_to_file/path": "uid://b0wpmj4ditnex"
+},
+"Sketchfab_Scene_Road_Sign_7_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Sign_7_Mat_0.res",
+"save_to_file/path": "uid://dmhucc541g7cd"
+},
+"Sketchfab_Scene_Road_Stopline_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Stopline_1_Mat_0.res",
+"save_to_file/path": "uid://byj6h4qkxwfpy"
+},
+"Sketchfab_Scene_Road_Stopline_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Stopline_2_Mat_0.res",
+"save_to_file/path": "uid://dgo3pi330e5i6"
+},
+"Sketchfab_Scene_Road_Work_Sign_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Work_Sign_1_Mat_0.res",
+"save_to_file/path": "uid://ducue84kx15gw"
+},
+"Sketchfab_Scene_Road_Work_Sign_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Road_Work_Sign_2_Mat_0.res",
+"save_to_file/path": "uid://d5e7j15ab5ps"
+},
+"Sketchfab_Scene_Taxi_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Taxi_Mat_0.res",
+"save_to_file/path": "uid://dlf6kyg67niu8"
+},
+"Sketchfab_Scene_Traffic_Light_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Traffic_Light_1_Mat_0.res",
+"save_to_file/path": "uid://b6ir5tyvvhsi1"
+},
+"Sketchfab_Scene_Traffic_Light_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Traffic_Light_2_Mat_0.res",
+"save_to_file/path": "uid://dyo7opc4dkmye"
+},
+"Sketchfab_Scene_Train_Carriage_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Train_Carriage_Mat_0.res",
+"save_to_file/path": "uid://cenjaelyf8fe2"
+},
+"Sketchfab_Scene_Train_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Train_Mat_0.res",
+"save_to_file/path": "uid://bxvp0bpmg4cl8"
+},
+"Sketchfab_Scene_Tram_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Tram_1_Mat_0.res",
+"save_to_file/path": "uid://brdun471w1fw4"
+},
+"Sketchfab_Scene_Tram_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Tram_2_Mat_0.res",
+"save_to_file/path": "uid://dyb5wyx0rtoaa"
+},
+"Sketchfab_Scene_Tram_3_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Tram_3_Mat_0.res",
+"save_to_file/path": "uid://b7aokxj6x27du"
+},
+"Sketchfab_Scene_Tram_4_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Tram_4_Mat_0.res",
+"save_to_file/path": "uid://cb8vpiy2438dw"
+},
+"Sketchfab_Scene_Tram_Stop_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Tram_Stop_Mat_0.res",
+"save_to_file/path": "uid://btq3jo6iycuw8"
+},
+"Sketchfab_Scene_Trash_Bag_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Trash_Bag_1_Mat_0.res",
+"save_to_file/path": "uid://cttapgbqut84l"
+},
+"Sketchfab_Scene_Trash_Bag_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Trash_Bag_2_Mat_0.res",
+"save_to_file/path": "uid://bhtr2eyo7gd2w"
+},
+"Sketchfab_Scene_Trash_Bag_3_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Trash_Bag_3_Mat_0.res",
+"save_to_file/path": "uid://d2rug3u68rvqy"
+},
+"Sketchfab_Scene_Trash_Big_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Trash_Big_Mat_0.res",
+"save_to_file/path": "uid://cs2xef6o8b4q0"
+},
+"Sketchfab_Scene_Trash_Small_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Trash_Small_Mat_0.res",
+"save_to_file/path": "uid://b7xa5tqxk4gdx"
+},
+"Sketchfab_Scene_Tree_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Tree_1_Mat_0.res",
+"save_to_file/path": "uid://db0wok63wbagl"
+},
+"Sketchfab_Scene_Tree_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Tree_2_Mat_0.res",
+"save_to_file/path": "uid://bm0fg51oabwrm"
+},
+"Sketchfab_Scene_Truck_1_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Truck_1_Mat_0.res",
+"save_to_file/path": "uid://pl8p5x6sypkr"
+},
+"Sketchfab_Scene_Truck_2_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Truck_2_Mat_0.res",
+"save_to_file/path": "uid://nujrh1y4qp85"
+},
+"Sketchfab_Scene_Truck_3_Mat_0": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 20.0,
+"save_to_file/enabled": true,
+"save_to_file/fallback_path": "res://assets/Infra/Sketchfab_Scene_Truck_3_Mat_0.res",
+"save_to_file/path": "uid://beh7aa343bidj"
+}
+}
+}
+gltf/naming_version=2
+gltf/embedded_image_handling=1
+gltf/texture_map_mode=1
