@@ -38,7 +38,7 @@ enum State { IDLE, WALK, CHASE, STALK, PURSUE, POUNCE, RECOVER }
 # PURSUE — a flat-out navmesh chase. The mouse is FASTER, so a pursuit is a losing
 # one: it ends when the mouse despawns off the map (or opens pursue_giveup_range).
 @export var pounce_detect_range: float = 5.0    # get this near a mouse and the laser loses the cat — it commits to the hunt
-@export var flee_chase_range: float = 14.0       # a mouse already sprinting is noticed (and chased) from this far — keep it > the mouse's fov_range so it can't just outrun the cat's attention
+@export var flee_chase_range: float = 10.0       # a mouse already sprinting is noticed (and chased) from this far — keep it > the mouse's fov_range so it can't just outrun the cat's attention
 @export var stalk_speed: float = 1.5             # navmesh creep toward the standoff point; anim is time-scaled to match
 @export var stalk_time: float = 1.5             # seconds of stalking before the jump is allowed to fire
 @export var stalk_approach_offset: float = 1.0  # creep toward a point this far behind the prey, so the cat comes at its blind side
