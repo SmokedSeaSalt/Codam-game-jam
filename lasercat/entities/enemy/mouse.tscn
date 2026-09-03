@@ -1,69 +1,22 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://entities/enemy/mouse.gd" id="1_enemy"]
+[ext_resource type="ArrayMesh" path="res://entities/enemy/rat_mesh.res" id="2_ratmesh"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_mouse"]
-size = Vector3(0.22, 0.16, 0.34)
-
-[sub_resource type="StandardMaterial3D" id="mat_grey"]
-albedo_color = Color(0.5, 0.5, 0.5, 1)
-
-[sub_resource type="StandardMaterial3D" id="mat_pink"]
-albedo_color = Color(0.92, 0.6, 0.66, 1)
-
-[sub_resource type="BoxMesh" id="mesh_body"]
-material = SubResource("mat_grey")
-size = Vector3(0.22, 0.16, 0.34)
-
-[sub_resource type="SphereMesh" id="mesh_head"]
-material = SubResource("mat_grey")
-radius = 0.09
-height = 0.18
-
-[sub_resource type="BoxMesh" id="mesh_nose"]
-material = SubResource("mat_pink")
-size = Vector3(0.05, 0.045, 0.06)
-
-[sub_resource type="SphereMesh" id="mesh_ear"]
-material = SubResource("mat_pink")
-radius = 0.045
-height = 0.09
-
-[sub_resource type="BoxMesh" id="mesh_tail"]
-material = SubResource("mat_pink")
-size = Vector3(0.022, 0.022, 0.3)
+size = Vector3(0.11, 0.08, 0.17)
 
 [node name="Mouse" type="CharacterBody3D"]
 collision_layer = 2
 collision_mask = 1
 script = ExtResource("1_enemy")
 
-[node name="Body" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, 0)
-mesh = SubResource("mesh_body")
-
-[node name="Head" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.11, 0.19)
-mesh = SubResource("mesh_head")
-
-[node name="Nose" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.09, 0.28)
-mesh = SubResource("mesh_nose")
-
-[node name="EarL" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.07, 0.18, 0.16)
-mesh = SubResource("mesh_ear")
-
-[node name="EarR" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, 0.18, 0.16)
-mesh = SubResource("mesh_ear")
-
-[node name="Tail" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.07, -0.32)
-mesh = SubResource("mesh_tail")
+[node name="Model" type="MeshInstance3D" parent="."]
+transform = Transform3D(-0.1, 0, 0, 0, 0.1, 0, 0, 0, -0.1, 0, -0.013, -0.015)
+mesh = ExtResource("2_ratmesh")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, 0)
 shape = SubResource("BoxShape3D_mouse")
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
@@ -71,5 +24,5 @@ path_desired_distance = 0.3
 target_desired_distance = 0.3
 path_max_distance = 3.0
 avoidance_enabled = false
-radius = 0.15
-height = 0.2
+radius = 0.08
+height = 0.1

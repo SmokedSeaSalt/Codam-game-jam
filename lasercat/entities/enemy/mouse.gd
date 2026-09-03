@@ -27,14 +27,16 @@ enum MouseState { IDLE, FLEE }
 @export var flee_min_time: float = 2.0      # commit to running at least this long before the off-map check arms
 @export var flee_max_time: float = 14.0     # gone after this even if still on the map
 @export var despawn_distance: float = 55.0  # distance from the world origin that counts as "off the map"
+@export var flee_bob_amp: float = 0.02      # how far the model hops up while sprinting — fakes leg movement
+@export var flee_bob_speed: float = 22.0    # bob cycles per second-ish while at full sprint
 
 @export_group("Idle")
-@export var walk_speed: float = 0.6                       # slow amble while it hasn't spotted the cat
-@export var walk_radius: float = 2.5                      # how far it strays from where it was dropped
-@export var repath_interval: Vector2 = Vector2(3.0, 7.0)  # random seconds between picking a new amble point
-@export var idle_turn_max_deg: float = 35.0               # cap on how far each new amble point can bend the heading — keeps turns small
+@export var walk_speed: float = 0.8                       # slow amble while it hasn't spotted the cat
+@export var walk_radius: float = 3.0                      # how far it strays from where it was dropped
+@export var repath_interval: Vector2 = Vector2(1.2, 3.0)  # random seconds between picking a new amble point — short = keeps scurrying
+@export var idle_turn_max_deg: float = 35.0               # cap on how far each new amble point can bend the heading — keeps turns small so the cat can still sneak up
 @export var idle_turn_speed: float = 1.2                  # radians/sec easing toward the amble heading — slow and gentle
-@export var idle_pause_chance: float = 0.4                # fraction of amble points that are just "stop and sniff"
+@export var idle_pause_chance: float = 0.15               # fraction of amble points that are just "stop and sniff"
 
 @export_group("Debug")
 ## Draws a translucent wedge for the vision cone: green = hasn't seen the cat,
@@ -56,6 +58,9 @@ var _braced: bool = false          # the cat has committed a pounce — hold sti
 var _yaw: float = 0.0              # current facing yaw
 var _cone: MeshInstance3D = null
 var _cone_mat: StandardMaterial3D = null
+var _model: Node3D = null          # the visual mesh; bobbed up/down while fleeing
+var _model_base_y: float = 0.0     # its resting local Y, restored when not fleeing
+var _bob_phase: float = 0.0
 
 @onready var nav: NavigationAgent3D = $NavigationAgent3D
 
@@ -67,13 +72,30 @@ func _ready() -> void:
 	_yaw = rotation.y
 	_amble_target = global_position
 	_last_pos = global_position
+	_model = get_node_or_null("Model")
+	if _model:
+		_model_base_y = _model.position.y
 	_reset_turn_timer()
 	if show_fov_cone:
 		_build_fov_cone()
 
+# Hop the model up and down while it's sprinting away, so it reads as scurrying
+# legs. Eases back to rest otherwise. (The pixel filter reads Model's transform,
+# so this shows through it too.)
+func _apply_run_bob(delta: float) -> void:
+	if _model == null:
+		return
+	if _mstate == MouseState.FLEE and not _braced:
+		_bob_phase += delta * flee_bob_speed
+		_model.position.y = _model_base_y + absf(sin(_bob_phase)) * flee_bob_amp
+	else:
+		_model.position.y = lerpf(_model.position.y, _model_base_y, clampf(delta * 10.0, 0.0, 1.0))
+
 func _physics_process(delta: float) -> void:
 	if _cat == null or not is_instance_valid(_cat):
 		_cat = _find_cat()
+
+	_apply_run_bob(delta)
 
 	# Pinned by an incoming pounce: freeze in place (gravity only) until it lands
 	# or the cat gives up. The mouse doesn't get to spot the cat mid-air and slip.

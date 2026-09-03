@@ -49,7 +49,7 @@ shadow_enabled = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 19.735, 40)
 projection = 1
 current = true
-size = 12.0
+size = 20.0
 far = 200.0
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=468329783]
