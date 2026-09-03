@@ -28,6 +28,7 @@ extends Node
 @export_range(0, 32) var color_levels: int = 6      ## posterise the composite; snaps shade wobble to fixed steps (0 = off)
 @export var ambient_energy: float = 0.30            ## fill light in the pixel world (keep low or the cat blows out to white)
 @export var sun_energy_scale: float = 0.55          ## fraction of the real sun's energy used in the pixel world (capped at 0.9)
+@export var include_mice: bool = true               ## also render nodes in the "mice" group through the pixel filter
 
 @export_group("Occlusion")
 @export var occlusion_smooth: float = 16.0          ## how fast the dissolve reacts (higher = snappier)
@@ -47,6 +48,8 @@ var _cat_rid: RID
 var _ok := false
 var _vis := 1.0
 var _snap_px := Vector2.INF
+var _mice_root: Node3D                 ## holds one stand-in MeshInstance per live mouse
+var _mouse_clones: Dictionary = {}     ## mouse instance_id -> MeshInstance3D in the pixel world
 
 func _ready() -> void:
 	# Let the cat's own _ready() and the runtime terrain build finish first.
@@ -63,6 +66,11 @@ func _ready() -> void:
 		_cat_rid = (_cat as CollisionObject3D).get_rid()
 
 	_configure_pixel_world()
+
+	if include_mice:
+		_mice_root = Node3D.new()
+		_mice_root.name = "MiceRig"
+		_sub.add_child(_mice_root)
 
 	# Move the cat's VISUAL subtree into the pixel world, keeping Skeleton3D and
 	# AnimationPlayer siblings so "../Skeleton3D" animation tracks still resolve.
@@ -122,36 +130,73 @@ func _mirror_sun(sun: DirectionalLight3D) -> void:
 
 func _style_cat_materials() -> void:
 	for node in _rig.find_children("*", "MeshInstance3D", true, false):
-		var mi := node as MeshInstance3D
-		if mi == null or mi.mesh == null:
+		_style_mesh_instance(node as MeshInstance3D)
+
+func _style_mesh_instance(mi: MeshInstance3D) -> void:
+	if mi == null or mi.mesh == null:
+		return
+	for i in mi.mesh.get_surface_count():
+		var src := mi.get_active_material(i)
+		if src == null:
 			continue
-		for i in mi.mesh.get_surface_count():
-			var src := mi.get_active_material(i)
-			if src == null:
-				continue
-			var dup := src.duplicate() as BaseMaterial3D
-			if dup == null:
-				continue
-			dup.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST if crunch_cat_textures \
-				else BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-			if flat_color:
-				dup.albedo_texture = null
-				dup.albedo_color = flat_color_value
-				dup.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-			elif unshaded_cat:
-				dup.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-			elif flatten_cat_shading:
-				dup.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
-				dup.metallic = 0.0
-				dup.roughness = 1.0
-				dup.normal_enabled = false
-				dup.rim_enabled = false
-				dup.clearcoat_enabled = false
-			mi.set_surface_override_material(i, dup)
+		var dup := src.duplicate() as BaseMaterial3D
+		if dup == null:
+			continue
+		dup.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST if crunch_cat_textures \
+			else BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		if flat_color:
+			dup.albedo_texture = null
+			dup.albedo_color = flat_color_value
+			dup.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		elif unshaded_cat:
+			dup.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		elif flatten_cat_shading:
+			dup.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+			dup.metallic = 0.0
+			dup.roughness = 1.0
+			dup.normal_enabled = false
+			dup.rim_enabled = false
+			dup.clearcoat_enabled = false
+		mi.set_surface_override_material(i, dup)
+
+# Each frame, mirror every live "mice"-group node into the pixel world as a plain
+# MeshInstance stand-in (the real Model is hidden), so the rats get the same
+# low-res chunky treatment as the cat. Clones are freed when their mouse despawns.
+func _sync_mice() -> void:
+	if _mice_root == null:
+		return
+	var seen := {}
+	for m in get_tree().get_nodes_in_group("mice"):
+		if not (m is Node3D):
+			continue
+		var src := (m as Node3D).get_node_or_null("Model") as MeshInstance3D
+		if src == null or src.mesh == null:
+			continue
+		var id := m.get_instance_id()
+		seen[id] = true
+		var clone: MeshInstance3D = _mouse_clones.get(id)
+		if clone == null:
+			clone = MeshInstance3D.new()
+			clone.mesh = src.mesh
+			clone.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			_mice_root.add_child(clone)
+			_style_mesh_instance(clone)
+			_mouse_clones[id] = clone
+			src.visible = false  # the pixel-world stand-in replaces it
+		clone.global_transform = src.global_transform
+	for id in _mouse_clones.keys():
+		if not seen.has(id):
+			var dead: MeshInstance3D = _mouse_clones[id]
+			if is_instance_valid(dead):
+				dead.queue_free()
+			_mouse_clones.erase(id)
 
 func _process(delta: float) -> void:
 	if not _ok:
 		return
+
+	if include_mice:
+		_sync_mice()
 
 	var t := _main_cam.global_transform
 	_mirror_cam.projection = _main_cam.projection

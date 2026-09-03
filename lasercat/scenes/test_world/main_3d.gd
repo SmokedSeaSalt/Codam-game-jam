@@ -2,7 +2,6 @@ extends Node3D
 @onready var camera: Camera3D = $Camera3D
 @onready var cat: CharacterBody3D = $Cat
 @onready var ground: MeshInstance3D = $Ground
-@onready var terrain: Node3D = $Terrain
 @onready var laser: Node3D = $Laser
 
 enum FollowMode { LASER, CAT }
@@ -16,15 +15,13 @@ enum FollowMode { LASER, CAT }
 # and never further from the origin than mouse_arena_radius.
 @export var mouse_scene: PackedScene = preload("res://entities/enemy/mouse.tscn")
 @export var mouse_count: int = 2
-@export var mouse_spawn_min_dist: float = 8.0
-@export var mouse_spawn_max_dist: float = 13.0
-@export var mouse_arena_radius: float = 13.0
+@export var mouse_spawn_min_dist: float = 15.0
+@export var mouse_spawn_max_dist: float = 38.0
+@export var mouse_arena_radius: float = 45.0
 
 var cam_offset: Vector3
 
 func _ready() -> void:
-	_fit_ground_to_terrain()
-
 	laser.camera = camera
 	laser.ground = ground
 	laser.cat = cat
@@ -35,8 +32,8 @@ func _ready() -> void:
 	cam_offset = camera.global_position
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
-	# Wait one physics step so terrain's runtime-built collider exists,
-	# then drop the cat, camera and laser onto the surface.
+	# Wait one physics step so the navigation map has synced, then drop the cat,
+	# camera and laser onto the ground.
 	await get_tree().physics_frame
 	var spawn_xz := Vector3(cat.global_position.x, 0.0, cat.global_position.z)
 	cat.global_position.y = _surface_y(spawn_xz.x, spawn_xz.z) + 0.1
@@ -47,13 +44,6 @@ func _ready() -> void:
 	for m in get_tree().get_nodes_in_group("mice"):
 		_track_mouse(m)
 	_top_up_mice()
-
-# Terrain sizes itself from the heightmap png, so match the invisible clamp
-# plane to its footprint (children run _ready before us, so cols/rows are set).
-func _fit_ground_to_terrain() -> void:
-	var pm := ground.mesh as PlaneMesh
-	if pm and "cols" in terrain:
-		pm.size = Vector2(terrain.cols * terrain.tile_size, terrain.rows * terrain.tile_size)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
