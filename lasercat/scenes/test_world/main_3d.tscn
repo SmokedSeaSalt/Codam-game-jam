@@ -4,13 +4,15 @@
 [ext_resource type="PackedScene" uid="uid://usp4b4j6ey4s" path="res://entities/cat/cat.tscn" id="3_l2gwq"]
 [ext_resource type="PackedScene" uid="uid://cmkwouakyghy8" path="res://entities/laser/Laser.tscn" id="5_qgoic"]
 [ext_resource type="PackedScene" uid="uid://gqgkt1tpiijq" path="res://entities/cat/pixel_cat.tscn" id="6_o4vf6"]
+[ext_resource type="Texture2D" path="res://assets/grass_medium_02_4k.blend/textures/grass_medium_02_diff_4k.jpg" id="7_grass"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ngk0r"]
 size = Vector2(200, 200)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
 albedo_color = Color(0.31764707, 0.21568628, 0.13333334, 1)
-roughness = 1.0
+albedo_texture = ExtResource("7_grass")
+uv1_scale = Vector3(80, 80, 80)
 
 [sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_floor"]
 
@@ -31,6 +33,7 @@ polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
 script = ExtResource("1_pt58c")
 
 [node name="Ground" type="MeshInstance3D" parent="." unique_id=1081182626]
+transform = Transform3D(0.716858, 0.26488662, 0.6449417, -0.59037316, 0.7227079, 0.35937834, -0.37090993, -0.6383795, 0.6744609, 0, 0, 0)
 mesh = SubResource("PlaneMesh_ngk0r")
 surface_material_override/0 = SubResource("StandardMaterial3D_ground")
 
