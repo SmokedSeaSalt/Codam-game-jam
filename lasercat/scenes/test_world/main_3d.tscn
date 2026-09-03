@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://usp4b4j6ey4s" path="res://entities/cat/cat.tscn" id="3_l2gwq"]
 [ext_resource type="PackedScene" uid="uid://cmkwouakyghy8" path="res://entities/laser/Laser.tscn" id="5_qgoic"]
 [ext_resource type="PackedScene" uid="uid://gqgkt1tpiijq" path="res://entities/cat/pixel_cat.tscn" id="6_o4vf6"]
+[ext_resource type="PackedScene" path="res://entities/grass/grass_field.tscn" id="7_grass"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ngk0r"]
 size = Vector2(200, 200)
@@ -30,6 +31,7 @@ polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
 script = ExtResource("1_pt58c")
 
 [node name="Ground" type="MeshInstance3D" parent="." unique_id=1081182626]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.007774353, -0.004472971, 0.0070319176)
 mesh = SubResource("PlaneMesh_ngk0r")
 surface_material_override/0 = SubResource("StandardMaterial3D_ground")
 
@@ -55,6 +57,8 @@ far = 200.0
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=468329783]
 navigation_mesh = SubResource("NavigationMesh_ground")
 
+[node name="GrassField" parent="." unique_id=330546089 instance=ExtResource("7_grass")]
+
 [node name="Cat" parent="." unique_id=1703446555 instance=ExtResource("3_l2gwq")]
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0.009077311, 0.009087563, -0.0076612234)
 
@@ -62,3 +66,4 @@ transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0.009077311, 0.009087563, -0.
 
 [node name="PixelCat" parent="." unique_id=60752270 instance=ExtResource("6_o4vf6")]
 pixel_scale = 2
+include_mice = false

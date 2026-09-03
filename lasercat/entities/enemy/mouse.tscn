@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://entities/enemy/mouse.gd" id="1_enemy"]
 [ext_resource type="ArrayMesh" path="res://entities/enemy/rat_mesh.res" id="2_ratmesh"]
+[ext_resource type="PackedScene" path="res://entities/fx/blob_shadow.tscn" id="3_blob"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_mouse"]
 size = Vector3(0.11, 0.08, 0.17)
@@ -14,6 +15,10 @@ script = ExtResource("1_enemy")
 [node name="Model" type="MeshInstance3D" parent="."]
 transform = Transform3D(-0.1, 0, 0, 0, 0.1, 0, 0, 0, -0.1, 0, -0.013, -0.015)
 mesh = ExtResource("2_ratmesh")
+cast_shadow = 0
+
+[node name="BlobShadow" parent="." instance=ExtResource("3_blob")]
+transform = Transform3D(0.3, 0, 0, 0, 1, 0, 0, 0, 0.38, 0, 0.03, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, 0)

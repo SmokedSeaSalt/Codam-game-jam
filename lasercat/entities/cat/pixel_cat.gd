@@ -26,9 +26,21 @@ extends Node
 @export var flat_color: bool = false               ## replace the cat's texture with one solid colour (most stable of all)
 @export var flat_color_value: Color = Color(0.85, 0.42, 0.12)
 @export_range(0, 32) var color_levels: int = 6      ## posterise the composite; snaps shade wobble to fixed steps (0 = off)
-@export var ambient_energy: float = 0.30            ## fill light in the pixel world (keep low or the cat blows out to white)
+@export var ambient_energy: float = 0.14            ## flat fill in the pixel world — low, so the real cast shadow has contrast to read against
 @export var sun_energy_scale: float = 0.55          ## fraction of the real sun's energy used in the pixel world (capped at 0.9)
 @export var include_mice: bool = true               ## also render nodes in the "mice" group through the pixel filter
+
+@export_group("Shadow")
+## A real, pose- and sun-angle-accurate shadow: a duplicate of the cat's skinned
+## mesh (shares the Skeleton3D, so it animates for free) is flattened onto the
+## ground along the sun direction by cat_shadow_projector.gdshader, then composited
+## back over the scene. Works on the GL Compatibility renderer, where a
+## DirectionalLight3D shadow-catcher does not. Off = fall back to the BlobShadow.
+@export var projected_shadow: bool = true
+@export_range(0.0, 1.0) var shadow_strength: float = 0.45  ## darkness of the projected shadow
+@export var shadow_ground_y: float = 0.02                  ## height the shadow sits at (just above the ground plane)
+@export var fill_light_energy: float = 0.25               ## dim light from the far side so the shadowed side of the cat isn't crushed
+@export var hide_blob_shadow: bool = true                 ## retire the cat.tscn BlobShadow while projected_shadow is on
 
 @export_group("Occlusion")
 @export var occlusion_smooth: float = 16.0          ## how fast the dissolve reacts (higher = snappier)
@@ -36,11 +48,18 @@ extends Node
 @export var occlusion_reach: float = 1.0            ## scales the ray-target cloud; raise if the cat's a bigger model
 @export var hard_cut: bool = false                  ## true = pop in/out instead of dither-dissolve
 
+const SHADOW_PROJECTOR_SHADER := preload("res://entities/fx/cat_shadow_projector.gdshader")
+
 @onready var _sub: SubViewport = $SubViewport
 @onready var _mirror_cam: Camera3D = $SubViewport/MirrorCamera
 @onready var _sub_sun: DirectionalLight3D = $SubViewport/Sun
 @onready var _rig: Node3D = $SubViewport/Rig
 @onready var _display: TextureRect = $CanvasLayer/Display
+
+var _sub_fill: DirectionalLight3D            ## far-side fill, no shadows
+var _shadow_mats: Array[ShaderMaterial] = [] ## projector materials on the flattened cat-mesh clones
+var _shadow_proj_mat: ShaderMaterial         ## the flatten-to-ground pass, shared by the cat and every mouse stand-in
+var _blob_shadow: Node3D                     ## the cat.tscn BlobShadow, hidden while projected_shadow is on
 
 var _main_cam: Camera3D
 var _cat: Node3D
@@ -85,6 +104,7 @@ func _ready() -> void:
 	if crunch_cat_textures or flatten_cat_shading:
 		_style_cat_materials()
 	_mirror_sun(sun)
+	_setup_projected_shadow()
 
 	_display.texture = _sub.get_texture()
 	var mat := _display.material as ShaderMaterial
@@ -118,15 +138,74 @@ func _resize() -> void:
 	_sub.size = Vector2i(maxi(1, s.x), maxi(1, s.y))
 
 func _mirror_sun(sun: DirectionalLight3D) -> void:
-	_sub_sun.shadow_enabled = false
 	if sun == null:
 		_sub_sun.rotation_degrees = Vector3(-50, -40, 0)
 		_sub_sun.light_energy = 0.7
+	else:
+		_sub_sun.global_transform = Transform3D(sun.global_transform.basis, Vector3.ZERO)
+		_sub_sun.light_color = sun.light_color
+		# Scaled + capped so the orange cat never clips to white on faces toward the sun.
+		_sub_sun.light_energy = minf(sun.light_energy * sun_energy_scale, 0.9)
+
+	_sub_sun.shadow_enabled = false  # the shadow is drawn as projected geometry, not shadow-mapped
+
+	# Dim fill from the far side so the now-low ambient doesn't crush the shadowed
+	# half of the cat to black. No shadows — it only lifts, never casts.
+	_sub_fill = DirectionalLight3D.new()
+	_sub_fill.name = "Fill"
+	_sub_fill.shadow_enabled = false
+	_sub_fill.light_energy = fill_light_energy
+	_sub_fill.light_color = Color(0.82, 0.86, 1.0)  # slight cool, like skylight
+	_sub_fill.global_transform = Transform3D(_sub_sun.global_transform.basis, Vector3.ZERO)
+	_sub_fill.rotate_y(PI)                                   # opposite azimuth
+	_sub_fill.rotate_object_local(Vector3.RIGHT, deg_to_rad(-25))  # tilt it down from above
+	_sub.add_child(_sub_fill)
+
+# The cat's shadow is drawn by redrawing the cat's own skinned geometry a second
+# time, flattened onto the ground along the sun direction — set as the `next_pass`
+# of every material on the cat. Same draw call chain, so it animates exactly with
+# the cat and needs no separate skeleton binding. The same projector pass is
+# chained onto each mouse stand-in in _sync_mice, so the rats cast the identical
+# shadow.
+func _setup_projected_shadow() -> void:
+	if not projected_shadow:
 		return
-	_sub_sun.global_transform = Transform3D(sun.global_transform.basis, Vector3.ZERO)
-	_sub_sun.light_color = sun.light_color
-	# Scaled + capped so the orange cat never clips to white on faces toward the sun.
-	_sub_sun.light_energy = minf(sun.light_energy * sun_energy_scale, 0.9)
+
+	var skel := _rig.find_child("Skeleton3D", true, false) as Skeleton3D
+	if skel == null:
+		push_warning("PixelCat: no Skeleton3D found for the projected shadow.")
+		return
+
+	# Direction the sun's light travels (points downward) — the axis we flatten along.
+	var ldir := (-_sub_sun.global_transform.basis.z).normalized()
+
+	_shadow_proj_mat = ShaderMaterial.new()
+	_shadow_proj_mat.shader = SHADOW_PROJECTOR_SHADER
+	_shadow_proj_mat.set_shader_parameter("light_dir", ldir)
+	_shadow_proj_mat.set_shader_parameter("ground_y", shadow_ground_y)
+	_shadow_proj_mat.set_shader_parameter("strength", shadow_strength)
+	_shadow_mats.append(_shadow_proj_mat)
+
+	for node in skel.find_children("*", "MeshInstance3D", true, false):
+		_chain_shadow_pass(node as MeshInstance3D)
+
+	if hide_blob_shadow:
+		_blob_shadow = _cat.get_node_or_null("BlobShadow") as Node3D
+		if _blob_shadow:
+			_blob_shadow.visible = false
+
+# Hang the flatten-to-ground projector on the tail of every material on `mi` so
+# the mesh is redrawn a second time squashed onto the ground as its own shadow.
+# Used for both the cat's skinned meshes and each mouse stand-in.
+func _chain_shadow_pass(mi: MeshInstance3D) -> void:
+	if mi == null or mi.mesh == null or _shadow_proj_mat == null:
+		return
+	for i in mi.mesh.get_surface_count():
+		var m := mi.get_active_material(i)
+		if m == null:
+			m = StandardMaterial3D.new()
+			mi.set_surface_override_material(i, m)
+		m.next_pass = _shadow_proj_mat
 
 func _style_cat_materials() -> void:
 	for node in _rig.find_children("*", "MeshInstance3D", true, false):
@@ -181,6 +260,13 @@ func _sync_mice() -> void:
 			clone.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			_mice_root.add_child(clone)
 			_style_mesh_instance(clone)
+			# Same ground-projected shadow the cat gets; retire the blob to match.
+			if projected_shadow:
+				_chain_shadow_pass(clone)
+				if hide_blob_shadow:
+					var mb := (m as Node3D).get_node_or_null("BlobShadow") as Node3D
+					if mb:
+						mb.visible = false
 			_mouse_clones[id] = clone
 			src.visible = false  # the pixel-world stand-in replaces it
 		clone.global_transform = src.global_transform

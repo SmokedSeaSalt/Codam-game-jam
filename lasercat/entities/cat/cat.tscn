@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://cvyaknp4un4sd" path="res://entities/cat/cat.gd" id="1_ip1iv"]
 [ext_resource type="PackedScene" uid="uid://cc07uygex6qq3" path="res://entities/cat/skeleton_3d.tscn" id="2_8aoym"]
 [ext_resource type="PackedScene" uid="uid://c7wsusd7bdu65" path="res://entities/cat/animation_player.tscn" id="3_xxcxc"]
+[ext_resource type="PackedScene" path="res://entities/fx/blob_shadow.tscn" id="4_blob"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_ip1iv"]
 radius = 0.15
@@ -21,3 +22,6 @@ target_desired_distance = 0.35
 [node name="Skeleton3D" parent="." unique_id=276100670 instance=ExtResource("2_8aoym")]
 
 [node name="AnimationPlayer" parent="." unique_id=347298546 instance=ExtResource("3_xxcxc")]
+
+[node name="BlobShadow" parent="." instance=ExtResource("4_blob")]
+transform = Transform3D(0.62, 0, 0, 0, 1, 0, 0, 0, 0.72, 0, 0.03, 0)
