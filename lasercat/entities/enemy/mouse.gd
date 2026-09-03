@@ -41,7 +41,7 @@ enum MouseState { IDLE, FLEE }
 @export_group("Debug")
 ## Draws a translucent wedge for the vision cone: green = hasn't seen the cat,
 ## orange = cat is in view, red = fleeing. Turn off once the tuning feels right.
-@export var show_fov_cone: bool = true
+@export var show_fov_cone: bool = false
 
 var _mstate: MouseState = MouseState.IDLE
 var _cat: Node3D = null
