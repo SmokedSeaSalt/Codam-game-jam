@@ -5,6 +5,8 @@ enum State { IDLE, WALK, CHASE, STALK, PURSUE, POUNCE, RECOVER }
 @export var walk_speed: float = 2.0
 @export var chase_speed: float = 5.0
 @export var pounce_speed: float = 8.0
+@export var path_speed_mult: float = 1.5   # locomotion is this much quicker while on a worn grass trail
+@export var path_speed_margin: float = 0.2  # body slack (m) added to the trail half-width when testing "on the path"
 @export var idle_wait_time: float = 2.0
 @export var turn_speed: float = 10.0  # radians/sec, tune to taste
 @export var gravity: float = 20.0
@@ -26,6 +28,8 @@ enum State { IDLE, WALK, CHASE, STALK, PURSUE, POUNCE, RECOVER }
 @export_flags_3d_physics var ground_mask: int = 1
 @export var arrive_distance: float = 0.4   # X/Z gap to a STILL laser that counts as "reached"
 @export var laser_still_time: float = 0.15 # laser must hold motionless this long before the cat sits
+@export var laser_sprint_range: float = 15.0    # laser led this far from the cat: break into a full sprint (anim_sprint) to run it down
+@export var laser_sprint_stop_gap: float = 3.0 # …then ease back to a trot once it's closed to within (laser_sprint_range - this)
 
 # Hunt: enemies trump the laser. When a mouse comes within pounce_detect_range the
 # cat drops the dot and STALKs it — a navmesh creep at stalk_speed with the sneak
@@ -48,7 +52,7 @@ enum State { IDLE, WALK, CHASE, STALK, PURSUE, POUNCE, RECOVER }
 @export var pursue_speed: float = 7.0           # PURSUE run speed — a lot quicker than the laser chase, but kept under the mouse's sprint_speed so it never catches up
 @export var pursue_giveup_range: float = 20.0   # a bolting mouse got this far: give up the losing chase (it'll usually despawn first)
 @export var pounce_hit_range: float = 0.6       # X/Z gap that counts as landing on the prey
-@export var pounce_arc_height: float = 0.9      # how high (m) the leap peaks — at the MIDPOINT, then it comes back down onto the prey
+@export var pounce_arc_height: float = 0.5      # how high (m) the leap peaks — at the MIDPOINT, then it comes back down onto the prey
 @export var pounce_overshoot: float = 0.25      # aim the leap this far past the prey so the cat lands squarely on it, not at its feet
 @export var pounce_max_reach: float = 5.5       # cap on the leap's horizontal distance — keep it above pounce_launch_range
 @export var pounce_speed_cap_mult: float = 3.0  # ceiling on the launch's horizontal speed, as a multiple of pounce_speed
@@ -60,6 +64,7 @@ enum State { IDLE, WALK, CHASE, STALK, PURSUE, POUNCE, RECOVER }
 @export var anim_settle: String = "RigRoot|Sitting_00-IP"
 @export var anim_rest: String = "RigRoot|Lying_00-IP"
 @export var anim_sneak: String = "RigRoot|Loco_Sneak-IP"   # played while stalking / coiling
+@export var anim_sprint: String = "RigRoot|Loco_Sprint-IP" # played while running a bolting mouse down (PURSUE)
 @export var anim_pounce: String = "RigRoot|Jump_Run-IP"    # played on the jump
 @export var anim_pounce_recover: String = "RigRoot|Lying_00-IP"  # low pose held after landing
 @export var anim_pounce_speed_scale: float = 1.5           # play the jump clip this much faster
@@ -71,6 +76,7 @@ enum State { IDLE, WALK, CHASE, STALK, PURSUE, POUNCE, RECOVER }
 # (fix feet sliding forward); raise it if the legs windmill faster than the cat.
 @export var anim_move_stride_speed: float = 2.5
 @export var anim_sneak_stride_speed: float = 1.4
+@export var anim_sprint_stride_speed: float = 6.0
 
 var current_state: State = State.IDLE
 var idle_timer: float = 0.0
@@ -89,6 +95,7 @@ var _model_rest_y: float = 0.0      # model's planted local Y over ground; held 
 var _snap_model_next: bool = true   # skip the height lerp for one frame (spawn, and on pounce landing)
 var _facing_angle: float = 0.0      # smoothed yaw target; the full body basis is composed from this + the ground plane
 var laser_active: bool = false      # mirrored from the laser so we know where to go after a hunt
+var _grass_field: Node = null       # resolved lazily; queried for "am I on a trail?"
 
 @onready var nav_agent: NavigationAgent3D = $NavigationAgent3D
 #@onready var model: Node3D = $Cat_body  # rename to match your instanced glb node
@@ -118,7 +125,7 @@ func _ready() -> void:
 	add_to_group("cat")  # mice look this up to run their vision checks against
 	# Several imported clips aren't flagged to loop; force the locomotion one so
 	# the cat keeps trotting instead of freezing after a single gait cycle.
-	for clip_name in [anim_move, anim_sneak]:
+	for clip_name in [anim_move, anim_sneak, anim_sprint]:
 		var clip := anim_player.get_animation(clip_name)
 		if clip:
 			clip.loop_mode = Animation.LOOP_LINEAR
@@ -229,14 +236,22 @@ func _process_walk(_delta: float) -> void:
 		_stop()
 		change_state(State.IDLE)
 		return
-	_move_toward_nav_target(walk_speed)
+	# Laser has been led out of reach — break into a sprint to close the gap.
+	if _flat_distance_to_target() >= laser_sprint_range:
+		change_state(State.CHASE)
+		return
+	_move_toward_nav_target(_path_speed(walk_speed))
 
 func _process_chase(_delta: float) -> void:
 	if _should_sit():
 		_stop()
 		change_state(State.IDLE)
 		return
-	_move_toward_nav_target(chase_speed)
+	# Back within comfortable range: drop the sprint and trot the rest of the way.
+	if _flat_distance_to_target() <= laser_sprint_range - laser_sprint_stop_gap:
+		change_state(State.WALK)
+		return
+	_move_toward_nav_target(_path_speed(chase_speed))
 
 # Creep (on the navmesh) toward the prey's blind side, hold at pounce_launch_range
 # once there, and JUMP when stalk_time has elapsed. The instant the mouse spots
@@ -271,16 +286,25 @@ func _process_stalk(delta: float) -> void:
 		_move_toward_point(goal, stalk_speed)
 
 # Prey has bolted. Run it down along the navmesh (so terrain steps don't wedge
-# the cat) — but the mouse is faster, so this is a chase the cat loses. It ends
-# when the mouse despawns off the map, or opens up pursue_giveup_range.
+# the cat). Most mice accelerate clear and this chase is lost — it ends when they
+# despawn off the map or open up pursue_giveup_range. But a mouse that never sped
+# up (is_catchable_flee) gets run down: closing to pounce_hit_range catches it.
 func _process_pursue(_delta: float) -> void:
 	if not _target_alive():
 		_end_hunt()
 		return
-	if _flat_distance_to(_pounce_target.global_position) > pursue_giveup_range:
+	var flat := _flat_distance_to(_pounce_target.global_position)
+	if flat <= pounce_hit_range and _pounce_target.has_method("is_catchable_flee") \
+			and _pounce_target.is_catchable_flee():
+		if _pounce_target.has_method("on_pounced"):
+			_pounce_target.on_pounced(self)
+		_snap_model_next = true
 		_end_hunt()
 		return
-	_move_toward_point(_pounce_target.global_position, pursue_speed)
+	if flat > pursue_giveup_range:
+		_end_hunt()
+		return
+	_move_toward_point(_pounce_target.global_position, _path_speed(pursue_speed))
 
 # Like _move_toward_nav_target but for an arbitrary point (a stalk standoff, or
 # the fleeing mouse) instead of the laser: path to it across the navmesh so
@@ -353,8 +377,8 @@ func _process_pounce(delta: float) -> void:
 	if flat <= pounce_hit_range:
 		if _pounce_target.has_method("on_pounced"):
 			_pounce_target.on_pounced(self)
-		_snap_model_next = true  # plant the model this frame, no easing into the lying pose
-		change_state(State.RECOVER)  # hold a low pose over the kill before resuming
+		_snap_model_next = true  # plant the model this frame
+		_end_hunt()  # straight back to the laser / idle — no lie-down over the kill
 		return
 	# Landed short. If the prey bolted mid-air, the jump's over — chase it (and
 	# lose). Otherwise it just shuffled a little; close the last gap on foot.
@@ -478,6 +502,18 @@ func _stop() -> void:
 	velocity.x = 0.0
 	velocity.z = 0.0
 
+# Scale a locomotion speed up when the cat is standing on a worn grass trail.
+# The grass field owns the trail geometry; we just ask it.
+func _path_speed(base: float) -> float:
+	if path_speed_mult == 1.0:
+		return base
+	if _grass_field == null or not is_instance_valid(_grass_field):
+		_grass_field = get_tree().get_first_node_in_group("grass_field")
+	if _grass_field and _grass_field.has_method("is_on_path") \
+			and _grass_field.is_on_path(global_position, path_speed_margin):
+		return base * path_speed_mult
+	return base
+
 func _update_facing(delta: float) -> void:
 	var move_dir := Vector3(velocity.x, 0, velocity.z)
 	if move_dir.length() < 0.2:  # ignore micro-velocities so the model doesn't spin in place
@@ -577,6 +613,12 @@ func _ground_ray(at: Vector3) -> Dictionary:
 # World-space direction the cat is currently facing, flattened to the ground.
 # _update_facing aligns the model's local +Z with the travel direction, so +Z is
 # forward here. (If the laser ends up spawning BEHIND the cat, negate this.)
+# True while the cat is running flat-out — chasing a laser that's been led out of
+# range, or running down a bolting mouse. Loud enough that a nearby mouse HEARS it
+# even when the cat is outside its vision cone (see Mouse._hears_cat).
+func is_sprinting() -> bool:
+	return current_state == State.CHASE or current_state == State.PURSUE
+
 func facing_dir() -> Vector3:
 	var f := model.global_transform.basis.z
 	f.y = 0.0
@@ -596,8 +638,8 @@ func _update_animation() -> void:
 		speed_scale = _stride_scale(anim_sneak_stride_speed)
 	elif current_state == State.PURSUE:
 		# Flat-out run after the bolting mouse.
-		want = anim_move
-		speed_scale = _stride_scale(anim_move_stride_speed)
+		want = anim_sprint
+		speed_scale = _stride_scale(anim_sprint_stride_speed)
 	elif current_state == State.POUNCE:
 		if not _leaped:
 			# Coiling: hold a near-frozen sneak pose until the jump fires.
@@ -610,7 +652,11 @@ func _update_animation() -> void:
 	elif current_state == State.RECOVER:
 		want = anim_pounce_recover
 		hold = true  # low pose, held for pounce_recover_time
-	else:  # WALK / CHASE
+	elif current_state == State.CHASE:
+		# Flat-out run after a laser that's been led out of range.
+		want = anim_sprint
+		speed_scale = _stride_scale(anim_sprint_stride_speed)
+	else:  # WALK
 		speed_scale = _stride_scale(anim_move_stride_speed)
 	anim_player.speed_scale = speed_scale
 	_play(want, hold)

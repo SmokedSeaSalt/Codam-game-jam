@@ -7,8 +7,10 @@ signal laser_toggled(active: bool)
 @export var cat: CharacterBody3D  # only used to exclude from surface raycasts
 @export var laser_sensitivity: float = 1.0
 @export var mouse_deadzone: float = 1.5
+@export var screen_margin: float = 48.0  # keep the dot at least this many pixels inside the viewport edge
 @export var dot_height: float = 0.05
 @export var spawn_ahead: float = 0.6  # metres in front of the cat's nose when toggled on
+@export var bounds_half: float = 0.0  # >0: also clamp the dot to ±this on X/Z (keeps it inside the fence)
 
 @onready var dot: MeshInstance3D = $Dot
 
@@ -58,9 +60,32 @@ func _snap_to_cat() -> void:
 	dot.global_position = laser_pos + Vector3(0.0, dot_height, 0.0)
 	target_updated.emit(laser_pos)
 
+# Shift the dot by a world-space offset and re-feed the cat, snapping back to the
+# real surface height. The test world uses this to make the dot travel along with
+# the cat while it sprints; harmless (no-op) when the laser is off.
+func nudge(offset: Vector3) -> void:
+	if not active or offset == Vector3.ZERO:
+		return
+	var p := _clamp_to_ground(laser_pos + offset)
+	p.y = _surface_y(p.x, p.z)
+	p = _clamp_to_screen(p)
+	laser_pos = p
+	dot.global_position = laser_pos + Vector3(0.0, dot_height, 0.0)
+	target_updated.emit(laser_pos)
+
 func _process(_delta: float) -> void:
 	if not active:
 		return
+
+	# The camera pans to follow the cat; if that has carried the dot past the edge
+	# of the view, walk it back on-screen even while the player isn't moving the
+	# mouse. Leaves laser_pos untouched (and stays quiet) whenever it's visible.
+	var rescued := _clamp_to_screen(laser_pos)
+	if rescued != laser_pos:
+		laser_pos = rescued
+		dot.global_position = laser_pos + Vector3(0.0, dot_height, 0.0)
+		target_updated.emit(laser_pos)
+
 	if _mouse_motion.length() < mouse_deadzone:
 		_mouse_motion = Vector2.ZERO
 	if _mouse_motion == Vector2.ZERO:
@@ -68,7 +93,7 @@ func _process(_delta: float) -> void:
 
 	# Screen-space motion, so this works the same whether the mouse is free or
 	# MOUSE_MODE_CAPTURED (relative-only, no absolute cursor).
-	var screen := camera.unproject_position(laser_pos) + _mouse_motion * laser_sensitivity
+	var screen := _clamp_screen_point(camera.unproject_position(laser_pos) + _mouse_motion * laser_sensitivity)
 	_mouse_motion = Vector2.ZERO
 	var np := _screen_to_surface(screen)
 	if np.distance_to(laser_pos) < 0.002:
@@ -104,9 +129,37 @@ func _surface_y(x: float, z: float) -> float:
 	var hit := get_world_3d().direct_space_state.intersect_ray(params)
 	return hit.position.y if hit else 0.0
 
+# Clamp a screen-space point to the visible viewport rect, kept screen_margin
+# pixels off every edge so the dot never rides the very border.
+func _clamp_screen_point(sp: Vector2) -> Vector2:
+	if camera == null:
+		return sp
+	var vp: Vector2 = camera.get_viewport().get_visible_rect().size
+	var m: float = minf(screen_margin, minf(vp.x, vp.y) * 0.5)
+	return Vector2(clampf(sp.x, m, vp.x - m), clampf(sp.y, m, vp.y - m))
+
+# Pull a world point back onto the surface directly under an on-screen pixel if
+# its projection currently falls outside the viewport (or behind the camera).
+# Returns the point unchanged when it's already comfortably in view.
+func _clamp_to_screen(world_pos: Vector3) -> Vector3:
+	if camera == null:
+		return world_pos
+	var vp: Vector2 = camera.get_viewport().get_visible_rect().size
+	var sp: Vector2 = camera.unproject_position(world_pos)
+	if camera.is_position_behind(world_pos):
+		sp = vp * 0.5  # unproject sign-flips behind the camera; aim back at centre
+	var clamped := _clamp_screen_point(sp)
+	if clamped.is_equal_approx(sp):
+		return world_pos
+	return _screen_to_surface(clamped)
+
 func _clamp_to_ground(p: Vector3) -> Vector3:
 	var half: Vector2 = (ground.mesh as PlaneMesh).size * 0.5
 	var c := ground.global_position
 	p.x = clampf(p.x, c.x - half.x, c.x + half.x)
 	p.z = clampf(p.z, c.z - half.y, c.z + half.y)
+	# Keep the dot inside the fenced play area so the cat never chases it into a wall.
+	if bounds_half > 0.0:
+		p.x = clampf(p.x, -bounds_half, bounds_half)
+		p.z = clampf(p.z, -bounds_half, bounds_half)
 	return p

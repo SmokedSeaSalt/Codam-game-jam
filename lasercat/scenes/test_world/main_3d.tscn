@@ -4,9 +4,11 @@
 [ext_resource type="PackedScene" uid="uid://usp4b4j6ey4s" path="res://entities/cat/cat.tscn" id="3_l2gwq"]
 [ext_resource type="PackedScene" uid="uid://cmkwouakyghy8" path="res://entities/laser/Laser.tscn" id="5_qgoic"]
 [ext_resource type="PackedScene" uid="uid://gqgkt1tpiijq" path="res://entities/cat/pixel_cat.tscn" id="6_o4vf6"]
+[ext_resource type="PackedScene" path="res://entities/grass/grass_field.tscn" id="7_grass"]
+[ext_resource type="PackedScene" path="res://entities/fence/fence_ring.tscn" id="8_fence"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ngk0r"]
-size = Vector2(200, 200)
+size = Vector2(420, 420)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
 albedo_color = Color(0.31764707, 0.21568628, 0.13333334, 1)
@@ -23,13 +25,14 @@ background_mode = 2
 sky = SubResource("Sky_l2gwq")
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_ground"]
-vertices = PackedVector3Array(-99.5, 0, -99.5, -99.5, 0, 99.5, 99.5, 0, 99.5, 99.5, 0, -99.5)
+vertices = PackedVector3Array(-91, 0, -91, -91, 0, 91, 91, 0, 91, 91, 0, -91)
 polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
 
 [node name="Main" type="Node3D" unique_id=1563088858]
 script = ExtResource("1_pt58c")
 
 [node name="Ground" type="MeshInstance3D" parent="." unique_id=1081182626]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.007774353, -0.004472971, 0.0070319176)
 mesh = SubResource("PlaneMesh_ngk0r")
 surface_material_override/0 = SubResource("StandardMaterial3D_ground")
 
@@ -50,15 +53,24 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 19.735, 40)
 projection = 1
 current = true
 size = 20.0
-far = 200.0
+far = 450.0
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=468329783]
 navigation_mesh = SubResource("NavigationMesh_ground")
+
+[node name="GrassField" parent="." unique_id=330546089 instance=ExtResource("7_grass")]
+area_size = 320.0
+chunk_div = 16
+
+[node name="FenceRing" parent="." instance=ExtResource("8_fence")]
+half_extent = 95.0
 
 [node name="Cat" parent="." unique_id=1703446555 instance=ExtResource("3_l2gwq")]
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0.009077311, 0.009087563, -0.0076612234)
 
 [node name="Laser" parent="." unique_id=2146666949 instance=ExtResource("5_qgoic")]
+bounds_half = 90.0
 
 [node name="PixelCat" parent="." unique_id=60752270 instance=ExtResource("6_o4vf6")]
 pixel_scale = 2
+include_mice = false
