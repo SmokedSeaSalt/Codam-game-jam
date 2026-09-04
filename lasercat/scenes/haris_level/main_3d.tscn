@@ -28,7 +28,7 @@ vertices = PackedVector3Array(-99.5, 0, -99.5, -99.5, 0, 99.5, 99.5, 0, 99.5, 99
 polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_hlt51"]
-size = Vector3(6.1335144, 1, 12.184391)
+size = Vector3(6.1335144, 3.7533875, 12.184391)
 
 [node name="Main" type="Node3D" unique_id=1563088858]
 script = ExtResource("1_k4b5w")
@@ -106,5 +106,6 @@ vertical_alignment = 1
 [node name="Lake" type="StaticBody3D" parent="." unique_id=1624950713]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Lake" unique_id=81889130]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0440216, 0, 7.0183573)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0440216, 1.3766937, 7.0183573)
+visible = false
 shape = SubResource("BoxShape3D_hlt51")
