@@ -18,6 +18,7 @@
 [ext_resource type="Texture2D" uid="uid://dp11voiqqprml" path="res://assets/sprites/Infrastructure/verbena_flower_low_poly_2.png" id="16_hj7nh"]
 [ext_resource type="Texture2D" uid="uid://dyqlr6h5ntpc0" path="res://assets/sprites/Infrastructure/verbena_flower_low_poly_3.png" id="17_rknn2"]
 [ext_resource type="Texture2D" uid="uid://cwy4s7i0y0yso" path="res://assets/sprites/Infrastructure/verbena_flower_low_poly_4.png" id="18_10wn4"]
+[ext_resource type="PackedScene" uid="uid://dhxfo0bdd4je" path="res://entities/enemy/pigeon.tscn" id="19_0xijr"]
 
 [sub_resource type="GDScript" id="GDScript_sesgv"]
 script/source = "extends Node3D
@@ -2737,6 +2738,9 @@ size = Vector3(14, 1, 1)
 [node name="Level1" type="Node3D" unique_id=50827243]
 script = SubResource("GDScript_sesgv")
 
+[node name="Pigeon" parent="." unique_id=1322832980 instance=ExtResource("19_0xijr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0.225, -68)
+
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=686446118]
 environment = SubResource("Environment_6b80p")
 
@@ -2751,7 +2755,7 @@ current = true
 size = 20.0
 
 [node name="Cat" parent="." unique_id=1703446555 instance=ExtResource("2_o1vhs")]
-transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -27.031998, -1.9000001, -60.127)
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -55.031998, 0, -61.127)
 
 [node name="Laser" parent="." unique_id=2146666949 instance=ExtResource("3_j2gmy")]
 

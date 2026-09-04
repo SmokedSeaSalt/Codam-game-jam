@@ -16,9 +16,9 @@ extends Enemy
 
 enum State { IDLE, FLY }
 
-@export var flight_duration: float = 2.0
-@export var fly_height: float = 6.0
-@export var safe_distance: float = 10.0
+@export var flight_duration: float = 10
+@export var fly_height: float = 5.0
+@export var safe_distance: float = 1.0
 @export var landing_margin: float = 0.5
 
 @export_group("Vision")
@@ -27,7 +27,7 @@ enum State { IDLE, FLY }
 @export var startle_range: float = 0.6  # a near-approach wakes it even from outside the cone
 
 @export_group("Debug")
-@export var show_fov_cone: bool = false
+@export var show_fov_cone: bool = true
 
 @onready var cat: Node3D = $"../Cat"
 @onready var sprite: AnimatedSprite3D = $AnimatedSprite3D
@@ -74,6 +74,7 @@ func _physics_process(delta: float) -> void:
 
 	if state == State.FLY:
 		fly(delta)
+	
 
 	# Gravity mirrors Enemy._physics_process, which we've replaced wholesale
 	# (same reason Mouse does it: FLY needs its own velocity control, not wander).
