@@ -19,12 +19,16 @@ extends Node3D
 ## z = ±half_extent. Keep it inside the ground plane and outside the navmesh.
 @export var half_extent: float = 95.0
 ## World length each instanced fence copy is scaled to cover along its long axis.
-@export var segment_length: float = 8.0
-## Height of the invisible containment wall. The real barrier — make it taller
-## than the cat's pounce arc so nothing gets over it.
-@export var wall_height: float = 4.0
+## The mesh scales uniformly, so this also sets how tall each fence piece stands —
+## keep it small so the fence reads at cat scale.
+@export var segment_length: float = 2.0
+## Height of the invisible containment wall. The real barrier — kept well above
+## the cat's pounce apex (even launched off a raised terrain step) so nothing
+## gets over it. It's invisible, so its height is independent of the small
+## visual fence and costs nothing to keep generous.
+@export var wall_height: float = 2.0
 ## Thickness of each containment wall box (centred on the fence line).
-@export var wall_thickness: float = 1.5
+@export var wall_thickness: float = 0.4
 ## Lift every fence copy this far into the ground so the base never floats on
 ## uneven spots.
 @export var sink: float = 0.05
@@ -109,6 +113,11 @@ func _build_visual(aabb: AABB) -> void:
 func _build_barrier() -> void:
 	var body := StaticBody3D.new()
 	body.name = "Barrier"
+	# Sit on the world-collision layer (1) that the cat and mice scan, and scan
+	# nothing itself — it only needs to be a wall they bump into, not the laser,
+	# which is a screen-space dot with no physics body and passes straight through.
+	body.collision_layer = 1
+	body.collision_mask = 0
 	add_child(body)
 	var h := wall_height
 	var t := wall_thickness
