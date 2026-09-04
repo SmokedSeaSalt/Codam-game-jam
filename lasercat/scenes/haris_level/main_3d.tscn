@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://b5c1ba4a3f6o0" path="res://scenes/test_world/main_3d.gd" id="1_k4b5w"]
 [ext_resource type="PackedScene" uid="uid://usp4b4j6ey4s" path="res://entities/cat/cat.tscn" id="2_fuvng"]
 [ext_resource type="PackedScene" uid="uid://cmkwouakyghy8" path="res://entities/laser/Laser.tscn" id="3_bp0ae"]
-[ext_resource type="PackedScene" uid="uid://gqgkt1tpiijq" path="res://entities/cat/pixel_cat.tscn" id="4_wy25m"]
 [ext_resource type="MeshLibrary" uid="uid://c11u0k520x1ll" path="res://assets/haris_level textures/mesh libraries/library2.tres" id="5_fuvng"]
 [ext_resource type="PackedScene" path="res://entities/ui/hunger_bar.tscn" id="6_hunger"]
 
@@ -63,17 +62,11 @@ far = 200.0
 navigation_mesh = SubResource("NavigationMesh_ground")
 
 [node name="Cat" parent="." unique_id=1703446555 instance=ExtResource("2_fuvng")]
-transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0.009077311, 0.009087563, -0.0076612234)
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0.009, 2.009, -0.008)
 
 [node name="Laser" parent="." unique_id=2146666949 instance=ExtResource("3_bp0ae")]
 
-[node name="PixelCat" parent="." unique_id=60752270 instance=ExtResource("4_wy25m")]
-pixel_scale = 2
-
-[node name="HungerBar" parent="." instance=ExtResource("6_hunger")]
-
-[node name="Bar" parent="HungerBar" index="0"]
-max_value = 1
+[node name="HungerBar" parent="." unique_id=195687413 instance=ExtResource("6_hunger")]
 
 [node name="GridMap" type="GridMap" parent="." unique_id=1895712403]
 mesh_library = ExtResource("5_fuvng")

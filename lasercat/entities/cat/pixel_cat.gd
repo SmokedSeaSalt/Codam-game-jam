@@ -47,6 +47,7 @@ extends Node
 @export var occlusion_slop: float = 0.35            ## a ray that only grazes terrain within this of the target isn't a real blocker
 @export var occlusion_reach: float = 1.0            ## scales the ray-target cloud; raise if the cat's a bigger model
 @export var hard_cut: bool = false                  ## true = pop in/out instead of dither-dissolve
+@export_range(0.0, 1.0) var min_visibility: float = 0.35  ## dissolve floor — the cat dithers down but never fully vanishes behind terrain/props
 
 const SHADOW_PROJECTOR_SHADER := preload("res://entities/fx/cat_shadow_projector.gdshader")
 
@@ -300,6 +301,8 @@ func _process(delta: float) -> void:
 		target = 1.0 if target >= 0.5 else 0.0
 	elif target >= 0.85:
 		target = 1.0  # ignore one stray blocked ray so the dither never fires in the open
+	else:
+		target = maxf(target, min_visibility)  # dissolve, but keep a readable silhouette — never fully disappear
 	_vis = lerp(_vis, target, clampf(delta * occlusion_smooth, 0.0, 1.0))
 	if _vis > 0.995:
 		_vis = 1.0
