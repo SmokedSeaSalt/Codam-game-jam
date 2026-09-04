@@ -47,6 +47,12 @@ extends Node
 @export var occlusion_slop: float = 0.35            ## a ray that only grazes terrain within this of the target isn't a real blocker
 @export var occlusion_reach: float = 1.0            ## scales the ray-target cloud; raise if the cat's a bigger model
 @export var hard_cut: bool = false                  ## true = pop in/out instead of dither-dissolve
+## Layers the line-of-sight ray actually treats as blockers — visible geometry
+## only (terrain/buildings, layer 1). Invisible physics-only volumes (e.g. the
+## lake's collision boxes, layer 3) are deliberately excluded: a ray hitting
+## them has nothing rendered to hide the cat behind, so counting them as a
+## blocker used to dissolve the cat to invisible for no visible reason.
+@export_flags_3d_physics var occlusion_mask: int = 1
 
 const SHADOW_PROJECTOR_SHADER := preload("res://entities/fx/cat_shadow_projector.gdshader")
 
@@ -363,6 +369,7 @@ func _line_of_sight() -> float:
 		var q := PhysicsRayQueryParameters3D.create(cam, p)
 		q.exclude = [_cat_rid]
 		q.collide_with_areas = false
+		q.collision_mask = occlusion_mask
 		var hit := space.intersect_ray(q)
 		if hit.is_empty():
 			clear += 1

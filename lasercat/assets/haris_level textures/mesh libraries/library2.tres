@@ -1556,6 +1556,9 @@ data = {
 [sub_resource type="ImageTexture" id="ImageTexture_6hw6q"]
 image = SubResource("Image_rlr55")
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_tile_full"]
+size = Vector3(2, 1, 2)
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4lb26"]
 resource_name = "Green"
 cull_mode = 2
@@ -1890,6 +1893,9 @@ data = {
 
 [sub_resource type="ImageTexture" id="ImageTexture_4xjw5"]
 image = SubResource("Image_d7qoa")
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tile_half"]
+size = Vector3(2, 0.5, 2)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_m6vdn"]
 resource_name = "Green"
@@ -2273,6 +2279,9 @@ data = {
 [sub_resource type="ImageTexture" id="ImageTexture_2325x"]
 image = SubResource("Image_2afbe")
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_tile_corner"]
+size = Vector3(1, 0.5, 1)
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5fuu1"]
 resource_name = "Green"
 cull_mode = 2
@@ -2384,6 +2393,9 @@ data = {
 
 [sub_resource type="ImageTexture" id="ImageTexture_uonpk"]
 image = SubResource("Image_c18ym")
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tile_straight"]
+size = Vector3(1, 0.5, 2)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rjx2b"]
 resource_name = "Green"
@@ -3477,7 +3489,7 @@ item/18/name = "square_forest"
 item/18/mesh = SubResource("ArrayMesh_fla5b")
 item/18/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/18/mesh_cast_shadow = 1
-item/18/shapes = []
+item/18/shapes = [SubResource("BoxShape3D_tile_full"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, 0)]
 item/18/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/18/navigation_layers = 1
 item/18/preview = SubResource("ImageTexture_6hw6q")
@@ -3485,7 +3497,7 @@ item/19/name = "square_forest_roadC"
 item/19/mesh = SubResource("ArrayMesh_efr1p")
 item/19/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/19/mesh_cast_shadow = 1
-item/19/shapes = []
+item/19/shapes = [SubResource("BoxShape3D_tile_full"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, 0)]
 item/19/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/19/navigation_layers = 1
 item/19/preview = SubResource("ImageTexture_adb4k")
@@ -3493,7 +3505,7 @@ item/20/name = "square_forest_roadB_detail"
 item/20/mesh = SubResource("ArrayMesh_jweas")
 item/20/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/20/mesh_cast_shadow = 1
-item/20/shapes = []
+item/20/shapes = [SubResource("BoxShape3D_tile_half"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)]
 item/20/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/20/navigation_layers = 1
 item/20/preview = SubResource("ImageTexture_4xjw5")
@@ -3501,7 +3513,7 @@ item/21/name = "square_forest_roadD"
 item/21/mesh = SubResource("ArrayMesh_q8fwm")
 item/21/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/21/mesh_cast_shadow = 1
-item/21/shapes = []
+item/21/shapes = [SubResource("BoxShape3D_tile_full"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, 0)]
 item/21/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/21/navigation_layers = 1
 item/21/preview = SubResource("ImageTexture_nr235")
@@ -3509,7 +3521,7 @@ item/22/name = "square_forest_roadE"
 item/22/mesh = SubResource("ArrayMesh_js8b8")
 item/22/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/22/mesh_cast_shadow = 1
-item/22/shapes = []
+item/22/shapes = [SubResource("BoxShape3D_tile_full"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, 0)]
 item/22/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/22/navigation_layers = 1
 item/22/preview = SubResource("ImageTexture_idcs0")
@@ -3517,7 +3529,7 @@ item/23/name = "square_forest_waterInnerCorner"
 item/23/mesh = SubResource("ArrayMesh_g7kj1")
 item/23/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/23/mesh_cast_shadow = 1
-item/23/shapes = []
+item/23/shapes = [SubResource("BoxShape3D_tile_half"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)]
 item/23/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/23/navigation_layers = 1
 item/23/preview = SubResource("ImageTexture_i7txg")
@@ -3525,7 +3537,7 @@ item/24/name = "square_forest_waterOuterCorner"
 item/24/mesh = SubResource("ArrayMesh_as378")
 item/24/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/24/mesh_cast_shadow = 1
-item/24/shapes = []
+item/24/shapes = [SubResource("BoxShape3D_tile_corner"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, -0.05, 0.5)]
 item/24/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/24/navigation_layers = 1
 item/24/preview = SubResource("ImageTexture_2325x")
@@ -3533,7 +3545,7 @@ item/25/name = "square_forest_waterStraight"
 item/25/mesh = SubResource("ArrayMesh_o0pfw")
 item/25/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/25/mesh_cast_shadow = 1
-item/25/shapes = []
+item/25/shapes = [SubResource("BoxShape3D_tile_straight"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, -0.05, 0)]
 item/25/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/25/navigation_layers = 1
 item/25/preview = SubResource("ImageTexture_uonpk")
@@ -3541,7 +3553,7 @@ item/26/name = "square_forest_waterOuterCorner_noSides"
 item/26/mesh = SubResource("ArrayMesh_uq6fc")
 item/26/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/26/mesh_cast_shadow = 1
-item/26/shapes = []
+item/26/shapes = [SubResource("BoxShape3D_tile_corner"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, -0.05, 0.5)]
 item/26/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/26/navigation_layers = 1
 item/26/preview = SubResource("ImageTexture_rs13w")
@@ -3549,7 +3561,7 @@ item/27/name = "square_rock"
 item/27/mesh = SubResource("ArrayMesh_gi2uc")
 item/27/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/27/mesh_cast_shadow = 1
-item/27/shapes = []
+item/27/shapes = [SubResource("BoxShape3D_tile_full"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, 0)]
 item/27/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/27/navigation_layers = 1
 item/27/preview = SubResource("ImageTexture_lcdll")
@@ -3557,7 +3569,7 @@ item/28/name = "square_sand"
 item/28/mesh = SubResource("ArrayMesh_3l60c")
 item/28/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/28/mesh_cast_shadow = 1
-item/28/shapes = []
+item/28/shapes = [SubResource("BoxShape3D_tile_full"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, 0)]
 item/28/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/28/navigation_layers = 1
 item/28/preview = SubResource("ImageTexture_hvw24")
@@ -3565,7 +3577,7 @@ item/29/name = "square_water_detail_noSides"
 item/29/mesh = SubResource("ArrayMesh_5wq1m")
 item/29/mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/29/mesh_cast_shadow = 1
-item/29/shapes = []
+item/29/shapes = [SubResource("BoxShape3D_tile_half"), Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.55, 0)]
 item/29/navigation_mesh_transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 item/29/navigation_layers = 1
 item/29/preview = SubResource("ImageTexture_8u3an")

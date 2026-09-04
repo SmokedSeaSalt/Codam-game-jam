@@ -26,6 +26,19 @@ enum State { IDLE, FLY }
 @export var fov_range: float = 9.0
 @export var startle_range: float = 0.6  # a near-approach wakes it even from outside the cone
 
+@export_group("Landing Safety")
+## Landing spots that overlap anything on this mask are rejected — layer 1
+## (buildings/terrain) + layer 3 (invisible blockers like the lake boxes),
+## matching what the cat itself collides with. Anywhere the cat can't walk, a
+## pigeon shouldn't land either.
+@export_flags_3d_physics var obstacle_mask: int = 5
+@export var landing_check_radius: float = 0.5   # roughly a cat-sized footprint
+@export var landing_check_height: float = 0.4   # probe height above ground_y
+## The flat ground/floor body — shares obstacle_mask's layer with real
+## obstacles, but as an infinite plane it "overlaps" every point on its solid
+## side, so it has to be excluded explicitly or every spot reads as blocked.
+@export_node_path("StaticBody3D") var ground_body_path: NodePath = ^"../Ground/StaticBody3D"
+
 @export_group("Debug")
 @export var show_fov_cone: bool = false
 
@@ -44,6 +57,8 @@ var _braced: bool = false  # the cat has committed a pounce — can't take off m
 
 var _cone: MeshInstance3D = null
 var _cone_mat: StandardMaterial3D = null
+var _landing_probe: SphereShape3D = null
+var _ground_body_rid: RID
 
 func _ready() -> void:
 	super._ready()        # "enemies" group + health, via Enemy
@@ -51,6 +66,11 @@ func _ready() -> void:
 	add_to_group("birds")  # so main_3d's top-up count can see it
 	ground_y = global_position.y
 	sprite.play("idle")
+	_landing_probe = SphereShape3D.new()
+	_landing_probe.radius = landing_check_radius
+	var ground_body := get_node_or_null(ground_body_path) as CollisionObject3D
+	if ground_body:
+		_ground_body_rid = ground_body.get_rid()
 	if show_fov_cone:
 		_build_fov_cone()
 
@@ -136,15 +156,50 @@ func choose_landing_spot() -> bool:
 			randf_range(-arena_half_size.z + landing_margin, arena_half_size.z - landing_margin)
 		)
 		var spot := arena_center + local_point
-		spot.y = ground_y
+		# Measure THIS spot's real surface height rather than reusing the
+		# spawn-time ground_y — terrain isn't flat everywhere (raised blocks,
+		# the lake), so a stale height can land the bird floating above (or
+		# inside) something that isn't actually there at the original spot.
+		spot.y = _local_surface_y(spot.x, spot.z, ground_y)
 		if is_instance_valid(cat):
 			var cat_pos := cat.global_position
 			cat_pos.y = ground_y
 			if spot.distance_to(cat_pos) < safe_distance:
 				continue
+		if _is_spot_blocked(spot):
+			continue
 		target_position = spot
 		return true
 	return false
+
+# True if a cat-sized footprint at `spot` would overlap anything on
+# obstacle_mask (buildings, fences, lake collision boxes, ...) — the same
+# layer the cat itself collides with, so pigeons never land somewhere the cat
+# couldn't actually walk.
+func _is_spot_blocked(spot: Vector3) -> bool:
+	if _landing_probe == null:
+		return false
+	var space := get_world_3d().direct_space_state
+	var params := PhysicsShapeQueryParameters3D.new()
+	params.shape = _landing_probe
+	params.transform = Transform3D(Basis(), spot + Vector3(0.0, landing_check_height, 0.0))
+	params.collision_mask = obstacle_mask
+	params.collide_with_bodies = true
+	params.collide_with_areas = false
+	if _ground_body_rid.is_valid():
+		params.exclude = [_ground_body_rid]
+	return space.intersect_shape(params, 1).size() > 0
+
+# Real surface height at (x, z): a straight-down raycast from well above
+# `fallback` to well below it. Falls back to `fallback` itself if nothing's
+# there (shouldn't happen over solid ground, but keeps this safe).
+func _local_surface_y(x: float, z: float, fallback: float) -> float:
+	var space := get_world_3d().direct_space_state
+	var params := PhysicsRayQueryParameters3D.create(
+		Vector3(x, fallback + 50.0, z), Vector3(x, fallback - 50.0, z))
+	params.exclude = [get_rid()]
+	var hit := space.intersect_ray(params)
+	return hit.position.y if hit else fallback
 
 ## The cat's hunt logic checks this before AND during a stalk/pounce.
 func is_catchable() -> bool:

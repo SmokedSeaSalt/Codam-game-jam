@@ -41,19 +41,6 @@ var _fence: Node = null  # the FenceRing, if the scene has one
 var cam_offset: Vector3
 var _cat_prev_xz: Vector3  # cat's flat position last frame, for the sprint-drag below
 
-# Win condition: the level finishes once the cat has caught (pounced) this many
-# PIGEONS in total, counting respawns — not the number alive at once. Mice can
-# still be hunted (they still top up and can be pounced), but a mouse catch
-# doesn't count toward the win. ScoreLabel/WinLabel are optional
-# (get_node_or_null): scenes that don't have them (e.g. test_world) just skip
-# the UI update and play on forever.
-@export var win_total_catches: int = 5
-@onready var score_label: Label = get_node_or_null("HUD/ScoreLabel")
-@onready var win_label: Label = get_node_or_null("HUD/WinLabel")
-
-var pigeons_caught: int = 0
-var game_won: bool = false
-
 func _ready() -> void:
 	laser.camera = camera
 	laser.ground = ground
@@ -81,7 +68,6 @@ func _ready() -> void:
 	for b in get_tree().get_nodes_in_group("birds"):
 		_track_bird(b)
 	_top_up_birds()
-	_update_score_label()
 
 	# Added last so its first frame runs after the spawn setup above. On web it
 	# takes over Esc (pause + free the cursor); on desktop it disables itself.
@@ -127,19 +113,14 @@ func _on_laser_toggled(is_on: bool) -> void:
 		cat.change_state(cat.State.IDLE)
 
 func _track_mouse(m: Node) -> void:
-	if m.has_signal("escaped") and not m.escaped.is_connected(_on_mouse_escaped):
-		m.escaped.connect(_on_mouse_escaped)
-	if m.has_signal("died") and not m.died.is_connected(_on_mouse_caught):
-		m.died.connect(_on_mouse_caught)
+	if m.has_signal("escaped") and not m.escaped.is_connected(_on_mouse_gone):
+		m.escaped.connect(_on_mouse_gone)
+	if m.has_signal("died") and not m.died.is_connected(_on_mouse_gone):
+		m.died.connect(_on_mouse_gone)
 
-# Fired when a mouse sprints off the map uncaught. It's mid-queue_free and we're
+# Fired the instant a mouse is pounced or escapes. It's mid-queue_free and we're
 # inside its signal, so defer the refill to the end of the frame.
-func _on_mouse_escaped(_who: Node) -> void:
-	_top_up_mice.call_deferred()
-
-# Fired the instant a mouse is pounced. Just refill it — mice don't count
-# toward the win condition, only pigeons do (see _on_bird_caught).
-func _on_mouse_caught(_who: Node) -> void:
+func _on_mouse_gone(_who: Node) -> void:
 	_top_up_mice.call_deferred()
 
 func _top_up_mice() -> void:
@@ -186,37 +167,13 @@ func _pick_mouse_spawn() -> Vector3:
 	return Vector3(best.x, 0.0, best.y)
 
 func _track_bird(b: Node) -> void:
-	if b.has_signal("died") and not b.died.is_connected(_on_bird_caught):
-		b.died.connect(_on_bird_caught)
+	if b.has_signal("died") and not b.died.is_connected(_on_bird_gone):
+		b.died.connect(_on_bird_gone)
 
-# Fired the instant a bird is pounced (birds have no "escaped" signal — every
-# death here is a catch). Mid-queue_free and inside its signal, so the refill is
-# deferred to the end of the frame.
-func _on_bird_caught(_who: Node) -> void:
+# Fired the instant a bird is pounced. Mirrors _on_mouse_gone: it's mid-queue_free
+# and we're inside its signal, so defer the refill to the end of the frame.
+func _on_bird_gone(_who: Node) -> void:
 	_top_up_birds.call_deferred()
-	_register_catch()
-
-# Counts a pigeon pounce toward the win total (across respawns) and ends the
-# level once win_total_catches is reached.
-func _register_catch() -> void:
-	if game_won:
-		return
-	pigeons_caught += 1
-	_update_score_label()
-	if pigeons_caught >= win_total_catches:
-		_win_level()
-
-func _update_score_label() -> void:
-	if score_label:
-		score_label.text = "Pigeons: %d / %d" % [pigeons_caught, win_total_catches]
-
-func _win_level() -> void:
-	game_won = true
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	if win_label:
-		win_label.text = "You caught them all!\nPigeons %d / %d" % [pigeons_caught, win_total_catches]
-		win_label.visible = true
-	get_tree().paused = true
 
 func _top_up_birds() -> void:
 	var missing := bird_count - get_tree().get_nodes_in_group("birds").size()

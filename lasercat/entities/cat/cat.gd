@@ -297,6 +297,11 @@ func _process_stalk(delta: float) -> void:
 	if not _target_alive():
 		_end_hunt()
 		return
+	# Bird spotted the cat and took off before the pounce could brace it — the
+	# hunt is over, drop it immediately rather than stalking empty ground.
+	if _target_uncatchable():
+		_end_hunt()
+		return
 	if _prey_fleeing():
 		change_state(State.PURSUE)
 		return
@@ -327,6 +332,9 @@ func _process_stalk(delta: float) -> void:
 # up (is_catchable_flee) gets run down: closing to pounce_hit_range catches it.
 func _process_pursue(_delta: float) -> void:
 	if not _target_alive():
+		_end_hunt()
+		return
+	if _target_uncatchable():
 		_end_hunt()
 		return
 	var flat := _flat_distance_to(_pounce_target.global_position)
@@ -450,6 +458,8 @@ func _prey_fleeing() -> bool:
 # (X/Z distance only), or null. A settled enemy has to be within
 # pounce_detect_range; one that's already fleeing counts out to flee_chase_range
 # so a mouse can't spot the cat and sprint clear before the cat even reacts.
+# Candidates blocked by an obstacle (see _has_line_of_sight) are skipped
+# entirely — the cat won't commit to a hunt it can't see straight into.
 func _closest_enemy_in_range() -> Node3D:
 	var best: Node3D = null
 	var best_d := INF
@@ -457,14 +467,39 @@ func _closest_enemy_in_range() -> Node3D:
 		if not (e is Node3D) or not is_instance_valid(e):
 			continue
 		var node := e as Node3D
+		# A bird mid-flight (Bird.is_catchable() false) is never a valid target —
+		# there's nothing on the ground to stalk toward.
+		if node.has_method("is_catchable") and not node.is_catchable():
+			continue
 		var reach := pounce_detect_range
 		if node.has_method("is_fleeing") and node.is_fleeing():
 			reach = flee_chase_range
 		var d := _flat_distance_to(node.global_position)
-		if d <= reach and d < best_d:
+		if d <= reach and d < best_d and _has_line_of_sight(node.global_position):
 			best_d = d
 			best = node
 	return best
+
+# True once the current prey has become uncatchable mid-hunt — right now that
+# only means a Bird that took off (Bird.is_catchable() went false) after the
+# cat had already started stalking/chasing it. Mice have no such state.
+func _target_uncatchable() -> bool:
+	return _target_alive() and _pounce_target.has_method("is_catchable") \
+		and not _pounce_target.is_catchable()
+
+# True when a straight ray from the cat to `to_pos` isn't blocked by anything
+# solid — buildings, fences, the lake's collision boxes, etc. Checked against
+# the cat's own collision_mask, so "can't see it" and "can't walk to it" mean
+# the same set of obstacles.
+func _has_line_of_sight(to_pos: Vector3) -> bool:
+	var space := get_world_3d().direct_space_state
+	var from := global_position + Vector3.UP * 0.2
+	var to := to_pos + Vector3.UP * 0.15
+	var params := PhysicsRayQueryParameters3D.create(from, to)
+	params.collision_mask = collision_mask
+	params.exclude = [get_rid()]
+	params.collide_with_areas = false
+	return space.intersect_ray(params).is_empty()
 
 func _begin_stalk(target: Node3D) -> void:
 	_pounce_target = target
