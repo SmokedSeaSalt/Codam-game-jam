@@ -71,6 +71,13 @@ var _mice_root: Node3D                 ## holds one stand-in MeshInstance per li
 var _mouse_clones: Dictionary = {}     ## mouse instance_id -> MeshInstance3D in the pixel world
 
 func _ready() -> void:
+	# The web pause layer freezes the tree on the very first frame (the browser
+	# won't grant pointer lock without a click), and a paused tree runs no
+	# _process — which would leave the mirror camera parked at its default
+	# transform, inside the cat. This overlay only mirrors the scene, so it is
+	# safe (and necessary) to keep it ticking while the game is paused.
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
 	# Let the cat's own _ready() and the runtime terrain build finish first.
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -112,6 +119,10 @@ func _ready() -> void:
 		mat.set_shader_parameter("pixel_scale", float(pixel_scale))
 		mat.set_shader_parameter("color_levels", color_levels)
 	_ok = true
+	# Place the mirror camera and rig NOW, so the first frame the Display composites
+	# is already correct — _process may not get a turn before the pause layer freezes
+	# the tree on web.
+	_sync_pixel_world()
 
 func _configure_pixel_world() -> void:
 	_sub.transparent_bg = true
@@ -281,6 +292,26 @@ func _process(delta: float) -> void:
 	if not _ok:
 		return
 
+	_sync_pixel_world()
+
+	# Occlusion: line-of-sight rays from the camera to points across the cat.
+	var target := _line_of_sight()
+	if hard_cut:
+		target = 1.0 if target >= 0.5 else 0.0
+	elif target >= 0.85:
+		target = 1.0  # ignore one stray blocked ray so the dither never fires in the open
+	_vis = lerp(_vis, target, clampf(delta * occlusion_smooth, 0.0, 1.0))
+	if _vis > 0.995:
+		_vis = 1.0
+	var mat := _display.material as ShaderMaterial
+	if mat:
+		mat.set_shader_parameter("visibility", _vis)
+
+# Mirror the main camera, the mice and the cat's visual rig into the pixel world.
+# Split out of _process so _ready() can run it once before the first composited
+# frame, rather than shipping a frame rendered from the mirror camera's default
+# (origin) transform — which sits inside the cat.
+func _sync_pixel_world() -> void:
 	if include_mice:
 		_sync_mice()
 
@@ -319,19 +350,6 @@ func _process(delta: float) -> void:
 		var off := _snap_px - sp
 		var b := _mirror_cam.global_transform.basis
 		_rig.global_position += b.x.normalized() * (off.x * wpp) - b.y.normalized() * (off.y * wpp)
-
-	# Occlusion: line-of-sight rays from the camera to points across the cat.
-	var target := _line_of_sight()
-	if hard_cut:
-		target = 1.0 if target >= 0.5 else 0.0
-	elif target >= 0.85:
-		target = 1.0  # ignore one stray blocked ray so the dither never fires in the open
-	_vis = lerp(_vis, target, clampf(delta * occlusion_smooth, 0.0, 1.0))
-	if _vis > 0.995:
-		_vis = 1.0
-	var mat := _display.material as ShaderMaterial
-	if mat:
-		mat.set_shader_parameter("visibility", _vis)
 
 func _line_of_sight() -> float:
 	var world := _main_cam.get_world_3d()

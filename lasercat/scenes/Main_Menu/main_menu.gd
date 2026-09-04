@@ -1,4 +1,7 @@
 extends Node3D
+
+const PauseMenu := preload("res://scenes/test_world/pause_menu.gd")
+
 @onready var camera: Camera3D = $Camera3D
 @onready var laser: Node3D = $Laser
 @onready var cat: CharacterBody3D = $Cat
@@ -30,8 +33,12 @@ func _ready() -> void:
 	# toggle-on doesn't snap the dot in from (0,0,0).
 	laser.start_at(Vector3(cat.global_position.x, 0.0, cat.global_position.z))
 
+	# Web: same pointer-lock story as the game scene — Esc frees the cursor and
+	# shows a click-to-resume prompt. No-op on desktop.
+	add_child(PauseMenu.new())
+
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel"):
+	if event.is_action_pressed("ui_cancel") and not OS.has_feature("web"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		get_tree().quit()
 

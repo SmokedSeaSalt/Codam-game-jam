@@ -78,6 +78,23 @@ enum State { IDLE, WALK, CHASE, STALK, PURSUE, POUNCE, RECOVER }
 @export var anim_sneak_stride_speed: float = 1.4
 @export var anim_sprint_stride_speed: float = 6.0
 
+# Turning. The bare locomotion clips (Loco_Trot-IP etc.) walk dead straight, so a
+# heading change used to be nothing but the code yawing the whole model — a rigid
+# pivot that reads as a skid. Every locomotion clip ships a banking _L / _R
+# variant with the legs crossing under the turn; while the heading is swinging
+# faster than turn_anim_rate_threshold we play that instead.
+#
+# A standing cat that has to face a long way round just yaws — it does NOT play
+# the Trans_Turn*_OnSpot step-around clips. Those depict a 90 degree turn over
+# 2.4s, but the code swings the body up to 180 degrees in about a third of a
+# second, so the clip never matched what the body did: a mouse appearing behind
+# the cat made it spin on the spot before pouncing. The clips are still in the
+# AnimationPlayer if that mismatch is ever worth fixing properly.
+@export var turn_speed_still: float = 6.0            # eased yaw rate while standing (turn_speed is used while moving)
+@export var turn_anim_rate_threshold: float = 0.6   # rad/s of heading change before the banking _L/_R clip takes over
+@export var turn_rate_smoothing: float = 8.0        # how fast the measured turn rate follows the actual heading change
+@export var turn_anim_invert: bool = false          # flip if the cat banks / steps the wrong way into a turn
+
 var current_state: State = State.IDLE
 var idle_timer: float = 0.0
 var _current_anim: String = ""
@@ -94,8 +111,12 @@ var _leap_speed: float = 0.0        # horizontal speed chosen for the current le
 var _model_rest_y: float = 0.0      # model's planted local Y over ground; held through a pounce arc
 var _snap_model_next: bool = true   # skip the height lerp for one frame (spawn, and on pounce landing)
 var _facing_angle: float = 0.0      # smoothed yaw target; the full body basis is composed from this + the ground plane
+var _turn_rate: float = 0.0         # smoothed d(_facing_angle)/dt, signed — drives the banking _L/_R clip choice
+var _faced_this_frame: bool = false # a _face_dir call ran this frame, so don't decay the turn rate
+var _loco_side: int = 0             # -1 / 0 / +1 banking side currently held for the locomotion clip (hysteresis)
 var laser_active: bool = false      # mirrored from the laser so we know where to go after a hunt
 var _grass_field: Node = null       # resolved lazily; queried for "am I on a trail?"
+var _fence: Node = null             # resolved lazily; queried for "is the dot inside the play area?"
 
 @onready var nav_agent: NavigationAgent3D = $NavigationAgent3D
 #@onready var model: Node3D = $Cat_body  # rename to match your instanced glb node
@@ -115,8 +136,10 @@ var target_pos: Vector3 = Vector3.ZERO:
 		# guard, leading the laser mid-chase yanks the cat's heading toward the dot.)
 		if current_state not in [State.STALK, State.PURSUE, State.POUNCE, State.RECOVER]:
 			nav_agent.target_position = value
-		if moved:
-			# Laser is being led: keep chasing (and don't sit) until it holds still.
+		if moved and _target_in_bounds():
+			# Laser is being led inside the fence: keep chasing (and don't sit)
+			# until it holds still. A dot led out past the fence line is ignored —
+			# the cat won't scrabble at the barrier for it, it just stays put.
 			_target_still_for = 0.0
 			if current_state == State.IDLE:
 				change_state(State.WALK)
@@ -125,15 +148,17 @@ func _ready() -> void:
 	add_to_group("cat")  # mice look this up to run their vision checks against
 	# Several imported clips aren't flagged to loop; force the locomotion one so
 	# the cat keeps trotting instead of freezing after a single gait cycle.
-	for clip_name in [anim_move, anim_sneak, anim_sprint]:
-		var clip := anim_player.get_animation(clip_name)
-		if clip:
-			clip.loop_mode = Animation.LOOP_LINEAR
+	for base in [anim_move, anim_sneak, anim_sprint]:
+		for clip_name in [base, _with_suffix(base, "_L"), _with_suffix(base, "_R")]:
+			var clip := anim_player.get_animation(clip_name)
+			if clip:
+				clip.loop_mode = Animation.LOOP_LINEAR
 	_facing_angle = model.rotation.y
 	change_state(State.IDLE)
 
 func _physics_process(delta: float) -> void:
 	_target_still_for += delta  # reset to 0 by the target_pos setter whenever the laser moves
+	_faced_this_frame = false   # set true again by _face_dir if the cat steers this frame
 
 	# Enemies win over the laser: if one is close enough, break off and start stalking.
 	if current_state not in [State.STALK, State.PURSUE, State.POUNCE, State.RECOVER]:
@@ -160,8 +185,12 @@ func _physics_process(delta: float) -> void:
 	_apply_gravity(delta)
 	move_and_slide()
 	_update_stuck(delta)
-	_update_animation()
+	# Steer BEFORE picking the clip: the animation picker reads the heading
+	# trackers (_turn_rate / _faced_this_frame), and running it first
+	# fed it last frame's numbers — on the frame a state changed those belonged to
+	# the state we just left.
 	_update_facing(delta)
+	_update_animation()
 	_update_body_orientation(delta)
 
 # If the cat is commanding movement but physically isn't going anywhere (wedged
@@ -232,7 +261,7 @@ func _process_idle(delta: float) -> void:
 		idle_timer -= delta  # counts down the "sitting" beat, then _update_animation lies down
 
 func _process_walk(_delta: float) -> void:
-	if _should_sit():
+	if _should_sit() or not _target_in_bounds():
 		_stop()
 		change_state(State.IDLE)
 		return
@@ -243,7 +272,7 @@ func _process_walk(_delta: float) -> void:
 	_move_toward_nav_target(_path_speed(walk_speed))
 
 func _process_chase(_delta: float) -> void:
-	if _should_sit():
+	if _should_sit() or not _target_in_bounds():
 		_stop()
 		change_state(State.IDLE)
 		return
@@ -498,6 +527,18 @@ func _flat_distance_to_target() -> float:
 func _should_sit() -> bool:
 	return _flat_distance_to_target() <= arrive_distance and _target_still_for >= laser_still_time
 
+# The dot is only clamped to the ground plane, so the player can lead it out past
+# the fence line — where the cat can't follow without scrabbling at the invisible
+# barrier. Treat a dot outside the fenced square as "no target": the laser-follow
+# states (WALK / CHASE) drop back to IDLE and won't re-engage until it's led back
+# inside. No fence in the scene -> no restriction.
+func _target_in_bounds() -> bool:
+	if _fence == null or not is_instance_valid(_fence):
+		_fence = get_tree().get_first_node_in_group("fence")
+	if _fence and _fence.has_method("contains"):
+		return _fence.contains(target_pos)
+	return true
+
 func _stop() -> void:
 	velocity.x = 0.0
 	velocity.z = 0.0
@@ -516,26 +557,45 @@ func _path_speed(base: float) -> float:
 
 func _update_facing(delta: float) -> void:
 	var move_dir := Vector3(velocity.x, 0, velocity.z)
-	if move_dir.length() < 0.2:  # ignore micro-velocities so the model doesn't spin in place
-		return
-	_face_dir(move_dir, delta)
+	if move_dir.length() >= 0.2:  # ignore micro-velocities so the model doesn't spin in place
+		_face_dir(move_dir, delta, turn_speed)
+	if not _faced_this_frame:
+		# Nothing to steer toward this frame — let the turn rate fall back to zero
+		# so a stale reading can't keep a banking clip latched on.
+		_turn_rate = move_toward(_turn_rate, 0.0, delta * 12.0)
 
-# Turn the model to look at a world point (used during the pounce wind-up, when
-# the cat is standing still and _update_facing has no velocity to work from).
+# Turn the model to look at a world point (used while holding a stalk standoff or
+# the pounce wind-up, when the cat is standing still and _update_facing has no
+# velocity to work from). Standing turns are eased at turn_speed_still.
 func _face_point(p: Vector3, delta: float) -> void:
 	var to := p - global_position
 	to.y = 0.0
 	if to.length() < 0.05:
 		return
-	_face_dir(to, delta)
+	_face_dir(to, delta, turn_speed_still)
 
-func _face_dir(dir: Vector3, delta: float) -> void:
+func _face_dir(dir: Vector3, delta: float, rate: float) -> void:
+	# Pouncing is a single committed leap, not something to steer mid-flight: the
+	# body keeps whatever heading it already had from the stalk standoff (where it
+	# spent stalk_time holding a bead on the prey) for the whole state, windup
+	# through landing. Without this, a prey that jinks right as the jump fires — or
+	# the short foot-shuffle when a pounce lands a bit short — snaps _facing_angle
+	# onto the new direction at full turn_speed, which reads as the cat whipping
+	# round mid-pounce.
+	if current_state == State.POUNCE:
+		return
 	# atan2 args depend on your model's forward axis (glTF default forward is -Z).
 	# If it faces backwards or sideways after this, swap signs/order here.
 	# Only the yaw target is tracked here; _update_body_orientation folds it
 	# together with the ground slope into the model's final transform.
 	var target_angle := atan2(dir.x, dir.z)
-	_facing_angle = lerp_angle(_facing_angle, target_angle, delta * turn_speed)
+	var prev := _facing_angle
+	_facing_angle = lerp_angle(_facing_angle, target_angle, clampf(delta * rate, 0.0, 1.0))
+	# Feed the measured per-frame yaw change into a smoothed rate the animation
+	# picker reads, so the banking clip eases in and out instead of snapping.
+	var step := wrapf(_facing_angle - prev, -PI, PI) / maxf(delta, 0.0001)
+	_turn_rate = lerpf(_turn_rate, step, clampf(delta * turn_rate_smoothing, 0.0, 1.0))
+	_faced_this_frame = true
 
 # Tilt the model to sit flush with the ground and pin its height so the paws
 # plant on the surface. Yaw comes from _facing_angle; pitch/roll from a plane
@@ -634,11 +694,11 @@ func _update_animation() -> void:
 		want = anim_settle if idle_timer > 0.0 else anim_rest
 		hold = true
 	elif current_state == State.STALK:
-		want = anim_sneak
+		want = _loco_clip(anim_sneak)
 		speed_scale = _stride_scale(anim_sneak_stride_speed)
 	elif current_state == State.PURSUE:
 		# Flat-out run after the bolting mouse.
-		want = anim_sprint
+		want = _loco_clip(anim_sprint)
 		speed_scale = _stride_scale(anim_sprint_stride_speed)
 	elif current_state == State.POUNCE:
 		if not _leaped:
@@ -654,12 +714,35 @@ func _update_animation() -> void:
 		hold = true  # low pose, held for pounce_recover_time
 	elif current_state == State.CHASE:
 		# Flat-out run after a laser that's been led out of range.
-		want = anim_sprint
+		want = _loco_clip(anim_sprint)
 		speed_scale = _stride_scale(anim_sprint_stride_speed)
 	else:  # WALK
+		want = _loco_clip(anim_move)
 		speed_scale = _stride_scale(anim_move_stride_speed)
 	anim_player.speed_scale = speed_scale
 	_play(want, hold)
+
+# Swap a straight locomotion clip for its banking _L / _R variant while the
+# heading is swinging hard, so the legs cross under the turn instead of the whole
+# model yawing rigidly. Hysteresis (enter at the threshold, release at 40% of it)
+# keeps it from strobing between the straight and banked clips on a gentle curve.
+func _loco_clip(base: String) -> String:
+	if _loco_side != 0 and absf(_turn_rate) < turn_anim_rate_threshold * 0.4:
+		_loco_side = 0
+	elif absf(_turn_rate) >= turn_anim_rate_threshold:
+		_loco_side = 1 if _turn_rate > 0.0 else -1
+	if _loco_side == 0:
+		return base
+	var left := (_loco_side > 0) != turn_anim_invert
+	var variant := _with_suffix(base, "_L" if left else "_R")
+	return variant if anim_player.has_animation(variant) else base
+
+# "RigRoot|Loco_Trot-IP" + "_L" -> "RigRoot|Loco_Trot_L-IP" (suffix goes before
+# the -IP marker); anything else just gets the suffix appended.
+func _with_suffix(base: String, suffix: String) -> String:
+	if base.ends_with("-IP"):
+		return base.left(base.length() - 3) + suffix + "-IP"
+	return base + suffix
 
 # Match clip playback to how fast the body is actually travelling so the paws
 # grip the ground. speed_scale 1.0 == "clip looks right at stride_speed m/s".

@@ -1,4 +1,8 @@
 extends Node3D
+
+# Web-only pause layer: gives the cursor back when the browser drops pointer lock.
+const PauseMenu := preload("res://scenes/test_world/pause_menu.gd")
+
 @onready var camera: Camera3D = $Camera3D
 @onready var cat: CharacterBody3D = $Cat
 @onready var ground: MeshInstance3D = $Ground
@@ -51,8 +55,14 @@ func _ready() -> void:
 		_track_mouse(m)
 	_top_up_mice()
 
+	# Added last so its first frame runs after the spawn setup above. On web it
+	# takes over Esc (pause + free the cursor); on desktop it disables itself.
+	add_child(PauseMenu.new())
+
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel"):
+	# Desktop: Esc quits outright. On web, Esc is the pause key (handled by
+	# PauseMenu) and the browser eats the keystroke for pointer-lock exit anyway.
+	if event.is_action_pressed("ui_cancel") and not OS.has_feature("web"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		get_tree().quit()
 
