@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://entities/enemy/mouse.gd" id="1_enemy"]
+[ext_resource type="ArrayMesh" path="res://entities/enemy/rat_mesh.res" id="2_ratmesh"]
+[ext_resource type="PackedScene" path="res://entities/fx/blob_shadow.tscn" id="3_blob"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_mouse"]
+size = Vector3(0.11, 0.08, 0.17)
+
+[node name="Mouse" type="CharacterBody3D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_enemy")
+
+[node name="Model" type="MeshInstance3D" parent="."]
+transform = Transform3D(-0.1, 0, 0, 0, 0.1, 0, 0, 0, -0.1, 0, -0.013, -0.015)
+mesh = ExtResource("2_ratmesh")
+cast_shadow = 0
+
+[node name="BlobShadow" parent="." instance=ExtResource("3_blob")]
+transform = Transform3D(0.3, 0, 0, 0, 1, 0, 0, 0, 0.38, 0, 0.03, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, 0)
+shape = SubResource("BoxShape3D_mouse")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+path_desired_distance = 0.3
+target_desired_distance = 0.3
+path_max_distance = 3.0
+avoidance_enabled = false
+radius = 0.08
+height = 0.1

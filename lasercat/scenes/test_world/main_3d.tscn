@@ -2,9 +2,18 @@
 
 [ext_resource type="Script" uid="uid://b5c1ba4a3f6o0" path="res://scenes/test_world/main_3d.gd" id="1_pt58c"]
 [ext_resource type="PackedScene" uid="uid://usp4b4j6ey4s" path="res://entities/cat/cat.tscn" id="3_l2gwq"]
-[ext_resource type="Script" uid="uid://hoj44xpd0uk4" path="res://scenes/test_world/heightmap.gd" id="3_ndnd3"]
-[ext_resource type="Texture2D" uid="uid://b0su524mos3ah" path="res://scenes/test_world/heightmap_512x512.png" id="4_hmap"]
 [ext_resource type="PackedScene" uid="uid://cmkwouakyghy8" path="res://entities/laser/Laser.tscn" id="5_qgoic"]
+[ext_resource type="PackedScene" uid="uid://gqgkt1tpiijq" path="res://entities/cat/pixel_cat.tscn" id="6_o4vf6"]
+[ext_resource type="PackedScene" path="res://entities/grass/grass_field.tscn" id="7_grass"]
+[ext_resource type="PackedScene" path="res://entities/fence/fence_ring.tscn" id="8_fence"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ngk0r"]
+size = Vector2(420, 420)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
+albedo_color = Color(0.31764707, 0.21568628, 0.13333334, 1)
+
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_floor"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_3wcom"]
 
@@ -15,11 +24,22 @@ sky_material = SubResource("ProceduralSkyMaterial_3wcom")
 background_mode = 2
 sky = SubResource("Sky_l2gwq")
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_ngk0r"]
-size = Vector2(50, 50)
+[sub_resource type="NavigationMesh" id="NavigationMesh_ground"]
+vertices = PackedVector3Array(-91, 0, -91, -91, 0, 91, 91, 0, 91, 91, 0, -91)
+polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
 
 [node name="Main" type="Node3D" unique_id=1563088858]
 script = ExtResource("1_pt58c")
+
+[node name="Ground" type="MeshInstance3D" parent="." unique_id=1081182626]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.007774353, -0.004472971, 0.0070319176)
+mesh = SubResource("PlaneMesh_ngk0r")
+surface_material_override/0 = SubResource("StandardMaterial3D_ground")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Ground" unique_id=1006370136]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground/StaticBody3D" unique_id=1671684802]
+shape = SubResource("WorldBoundaryShape3D_floor")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1033023909]
 environment = SubResource("Environment_ngk0r")
@@ -32,24 +52,23 @@ shadow_enabled = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 19.735, 40)
 projection = 1
 current = true
-size = 12.0
-far = 200.0
+size = 20.0
+far = 450.0
 
-[node name="Terrain" type="Node3D" parent="." unique_id=539595579]
-script = ExtResource("3_ndnd3")
-cols = 512
-rows = 512
-tile_size = 0.1
-level_height = 0.1
-max_level = 200
-heightmap_texture = ExtResource("4_hmap")
-texture_tile_size = 1.0
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=468329783]
+navigation_mesh = SubResource("NavigationMesh_ground")
+
+[node name="GrassField" parent="." unique_id=330546089 instance=ExtResource("7_grass")]
+area_size = 320.0
+chunk_div = 16
+
+[node name="FenceRing" parent="." unique_id=1036523840 instance=ExtResource("8_fence")]
 
 [node name="Cat" parent="." unique_id=1703446555 instance=ExtResource("3_l2gwq")]
-transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
-
-[node name="Ground" type="MeshInstance3D" parent="." unique_id=1081182626]
-visible = false
-mesh = SubResource("PlaneMesh_ngk0r")
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0.009077311, 0.009087563, -0.0076612234)
 
 [node name="Laser" parent="." unique_id=2146666949 instance=ExtResource("5_qgoic")]
+
+[node name="PixelCat" parent="." unique_id=60752270 instance=ExtResource("6_o4vf6")]
+pixel_scale = 2
+include_mice = false
