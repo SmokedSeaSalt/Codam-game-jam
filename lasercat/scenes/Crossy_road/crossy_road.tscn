@@ -2,11 +2,11 @@
 
 [ext_resource type="PackedScene" uid="uid://usp4b4j6ey4s" path="res://entities/cat/cat.tscn" id="1_pac4s"]
 [ext_resource type="Script" uid="uid://djgvwo1apvubl" path="res://scenes/Crossy_road/crossy_road.gd" id="1_yl78l"]
-[ext_resource type="Texture2D" uid="uid://dwnjqyp2a3ikw" path="res://assets/WoodFloor.jpg" id="2_hctif"]
+[ext_resource type="Texture2D" uid="uid://b8vghc6d5mu8p" path="res://scenes/Crossy_road/CityStreetAsphaltGenericClean001_GLOSS_1K.jpg" id="3_tfpa3"]
 [ext_resource type="PackedScene" uid="uid://cmkwouakyghy8" path="res://entities/laser/Laser.tscn" id="3_yl78l"]
 [ext_resource type="PackedScene" uid="uid://btmtpx2nd3tr8" path="res://entities/vehicle/vehicle.tscn" id="4_hctif"]
 [ext_resource type="PackedScene" uid="uid://dy5aadh06m7wh" path="res://scenes/Crossy_road/lasagna.glb" id="6_84yyo"]
-[ext_resource type="Script" path="res://scenes/Crossy_road/lasagna_goal.gd" id="8_goal1"]
+[ext_resource type="Script" uid="uid://d4a7r0llyxsfg" path="res://scenes/Crossy_road/lasagna_goal.gd" id="8_goal1"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_84yyo"]
 
@@ -25,10 +25,10 @@ cell_height = 0.1
 [sub_resource type="PlaneMesh" id="PlaneMesh_ieuml"]
 size = Vector2(200, 300)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nsjjc"]
-albedo_color = Color(0.7933078, 0.7933078, 0.7933078, 1)
-albedo_texture = ExtResource("2_hctif")
-uv1_scale = Vector3(19.42, 19.42, 19.42)
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1hxme"]
+albedo_color = Color(0.4149491, 0.4149491, 0.4149491, 1)
+albedo_texture = ExtResource("3_tfpa3")
+uv1_scale = Vector3(9.1, 9.1, 9.1)
 
 [sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_7l7kt"]
 
@@ -59,7 +59,7 @@ navigation_mesh = SubResource("NavigationMesh_lya5q")
 
 [node name="Ground" type="MeshInstance3D" parent="NavigationRegion3D" unique_id=407737274]
 mesh = SubResource("PlaneMesh_ieuml")
-surface_material_override/0 = SubResource("StandardMaterial3D_nsjjc")
+surface_material_override/0 = SubResource("StandardMaterial3D_1hxme")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="NavigationRegion3D/Ground" unique_id=1999489526]
 

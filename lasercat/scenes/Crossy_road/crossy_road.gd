@@ -17,6 +17,7 @@ extends Node3D
 # never scrolls back down. "Forward" is inferred from camera_offset.z (the camera
 # trails behind, so forward is the opposite world-Z direction).
 @export var camera_advance_only: bool = true
+@export var death_lie_time: float = 4.0  # seconds the death animation holds before respawning
 
 var _cam_z_locked: float = 0.0   # furthest-forward Z the camera has reached
 var _forward_sign: float = -1.0  # world-Z direction that counts as "forward / up the road"
@@ -55,6 +56,10 @@ func _snap_camera_to_cat() -> void:
 	_cam_z_locked = z
 
 func _on_vehicle_hit_cat() -> void:
+	if cat.current_state == cat.State.DEAD:
+		return  # already lying there — a second car overlapping the corpse is a no-op
+	cat.die()  # freezes in the death pose; _update_animation plays anim_death and holds it
+	await get_tree().create_timer(death_lie_time).timeout
 	cat.respawn(_cat_spawn_pos)
 	# The camera only ever advances (camera_advance_only) — without this it would
 	# be left stranded up the road, framing empty space where the cat used to be.
