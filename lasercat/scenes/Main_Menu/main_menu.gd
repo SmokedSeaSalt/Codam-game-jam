@@ -7,11 +7,16 @@ const PauseMenu := preload("res://scenes/test_world/pause_menu.gd")
 @onready var cat: CharacterBody3D = $Cat
 @onready var ground: MeshInstance3D = $NavigationRegion3D/Ground
 @onready var cat_bed: Node3D = $CatBed  # path to your imported glb instance
+@onready var lasagna: Node3D = $Sketchfab_Scene  # hidden until Crossy Road is won
 
 func _ready() -> void:
 	# Hide the OS pointer and feed the laser relative motion only, exactly like the
 	# game scene — otherwise the dot drifts out of sync with the visible cursor.
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+	# Reward prop: stays hidden (see its `visible = false` in the scene) until the
+	# cat has reached the lasagna at the end of Crossy Road.
+	lasagna.visible = GameState.lasagna_unlocked
 
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	var center := ground.global_position

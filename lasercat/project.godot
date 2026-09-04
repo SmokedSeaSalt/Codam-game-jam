@@ -15,10 +15,19 @@ run/main_scene="uid://cyi7nfpnpm42n"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
+[autoload]
+
+GameState="*res://scripts/game_state.gd"
+
 [display]
 
 window/size/mode=3
 window/stretch/aspect="expand"
+
+[navigation]
+
+3d/warnings/navmesh_cell_size_mismatch=false
+3d/default_cell_height=0.1
 
 [physics]
 
