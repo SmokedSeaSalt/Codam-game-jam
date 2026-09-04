@@ -103,8 +103,6 @@ enum State { IDLE, WALK, CHASE, STALK, PURSUE, POUNCE, RECOVER, DEAD }
 @export var meow_volume_db: float = -3.0
 @export var voice_volume_db: float = -2.0        # attack / catch / win / death stings
 @export var purr_volume_db: float = -10.0
-@export var footstep_volume_db: float = -14.0
-@export var footstep_stride: float = 0.9         # metres between paw-strike sounds
 @export var attack_lead_time: float = 0.2        # minimum pounce windup, so the attack meow has a beat to land before the leap fires
 
 var current_state: State = State.IDLE
@@ -132,9 +130,7 @@ var _fence: Node = null             # resolved lazily; queried for "is the dot i
 
 var _voice_player: AudioStreamPlayer  # meow / attack / catch — one at a time, interrupts itself
 var _purr_player: AudioStreamPlayer   # looped while settled and lying down
-var _foot_player: AudioStreamPlayer
 var _meow_timer: float = 0.0
-var _foot_dist: float = 0.0         # metres travelled since the last footstep sound
 
 @onready var nav_agent: NavigationAgent3D = $NavigationAgent3D
 #@onready var model: Node3D = $Cat_body  # rename to match your instanced glb node
@@ -215,7 +211,6 @@ func _physics_process(delta: float) -> void:
 	_update_animation()
 	_update_body_orientation(delta)
 	_update_ambient_meow(delta)
-	_update_footsteps(delta)
 	_update_purr()
 
 # If the cat is commanding movement but physically isn't going anywhere (wedged
@@ -861,11 +856,6 @@ func _setup_audio() -> void:
 			(purr_stream as AudioStreamOggVorbis).loop = true
 		_purr_player.stream = purr_stream
 
-	_foot_player = AudioStreamPlayer.new()
-	_foot_player.name = "FootstepPlayer"
-	_foot_player.volume_db = footstep_volume_db
-	add_child(_foot_player)
-
 	_meow_timer = randf_range(meow_interval.x, meow_interval.y)
 
 # A bit of idle personality: an occasional random meow, skipped mid-hunt so it
@@ -878,27 +868,6 @@ func _update_ambient_meow(delta: float) -> void:
 	if current_state in [State.STALK, State.PURSUE, State.POUNCE]:
 		return
 	_play_voice("cat/meow", meow_volume_db)
-
-# Paw-strike sounds cadenced to actual travel distance, so a sprint clicks along
-# faster than a trot. Silent during STALK (sneaking) and POUNCE (airborne) on
-# purpose — those aren't supposed to be heard.
-func _update_footsteps(delta: float) -> void:
-	if current_state not in [State.WALK, State.CHASE, State.PURSUE]:
-		_foot_dist = 0.0
-		return
-	var flat := Vector2(velocity.x, velocity.z).length()
-	if flat < 0.05:
-		return
-	_foot_dist += flat * delta
-	if _foot_dist < footstep_stride:
-		return
-	_foot_dist = 0.0
-	var stream := SoundLibrary.random("cat/footstep")
-	if stream == null:
-		return
-	_foot_player.stream = stream
-	_foot_player.pitch_scale = randf_range(0.9, 1.15)
-	_foot_player.play()
 
 # Loops while settled and lying down (the same beat _update_animation uses to
 # swap from anim_settle to anim_rest), stops the moment the cat has somewhere to be.

@@ -12,6 +12,10 @@ const ROOT := "res://assets/audio"
 var _cache: Dictionary = {}  # category (String) -> Array[AudioStream]
 
 func _ready() -> void:
+	# Godot's global RNG (randi/randf, used by random() below) is otherwise a
+	# fixed seed — without this every run plays clips in the exact same
+	# "random" order, e.g. cat meows always cycling identically session to session.
+	randomize()
 	_scan_dir(ROOT, "")
 
 func _scan_dir(path: String, category: String) -> void:

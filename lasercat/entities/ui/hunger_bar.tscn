@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://entities/ui/hunger_bar.gd" id="1_bar"]
+
+[node name="HungerBar" type="CanvasLayer"]
+layer = 10
+
+[node name="Bar" type="Control" parent="."]
+script = ExtResource("1_bar")

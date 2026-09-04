@@ -27,32 +27,14 @@ enum FollowMode { LASER, CAT }
 
 var _fence: Node = null  # the FenceRing, if the scene has one
 
-# Birds. Same top-up pattern as mice: whenever one is pounced (died), a
-# replacement drops in elsewhere in the arena, at least bird_spawn_safe_distance
-# from the cat. Birds also fly themselves to a new spot inside this same
-# bird_arena_radius (see Bird.set_landing_bounds) whenever they spot the cat, so
-# spawning them within that same zone keeps them from immediately having to fly
-# back into bounds.
-@export var bird_scene: PackedScene = preload("res://entities/enemy/pigeon.tscn")
-@export var bird_count: int = 2
-@export var bird_arena_radius: float = 13.0
-@export var bird_spawn_safe_distance: float = 10.0
+# Pixel-style hunger bar (res://entities/ui/hunger_bar.tscn), bottom-middle of
+# the screen. Fills one pip per mouse caught; its cap (max_value) is set on
+# the HungerBar/Bar node itself so it's adjustable per-level without touching
+# this script.
+@onready var hunger_bar := get_node_or_null("HungerBar/Bar")
 
 var cam_offset: Vector3
 var _cat_prev_xz: Vector3  # cat's flat position last frame, for the sprint-drag below
-
-# Win condition: the level finishes once the cat has caught (pounced) this many
-# PIGEONS in total, counting respawns — not the number alive at once. Mice can
-# still be hunted (they still top up and can be pounced), but a mouse catch
-# doesn't count toward the win. ScoreLabel/WinLabel are optional
-# (get_node_or_null): scenes that don't have them (e.g. test_world) just skip
-# the UI update and play on forever.
-@export var win_total_catches: int = 5
-@onready var score_label: Label = get_node_or_null("HUD/ScoreLabel")
-@onready var win_label: Label = get_node_or_null("HUD/WinLabel")
-
-var pigeons_caught: int = 0
-var game_won: bool = false
 
 func _ready() -> void:
 	laser.camera = camera
@@ -74,20 +56,18 @@ func _ready() -> void:
 	camera.global_position = spawn_xz + cam_offset
 	_cat_prev_xz = Vector3(cat.global_position.x, 0.0, cat.global_position.z)
 
-	# Any mice/birds already dropped into the scene get tracked too; then top up to count.
+	# Any mice already dropped into the scene get tracked too; then top up to count.
 	for m in get_tree().get_nodes_in_group("mice"):
 		_track_mouse(m)
 	_top_up_mice()
-	for b in get_tree().get_nodes_in_group("birds"):
-		_track_bird(b)
-	_top_up_birds()
-	_update_score_label()
 
 	# Added last so its first frame runs after the spawn setup above. On web it
 	# takes over Esc (pause + free the cursor); on desktop it disables itself.
 	add_child(PauseMenu.new())
 
-	add_child(AmbientAudio.new())
+	var ambient_audio := AmbientAudio.new()
+	ambient_audio.bird_enabled = false  # no pigeons in test_world — don't play their ambience
+	add_child(ambient_audio)
 
 func _unhandled_input(event: InputEvent) -> void:
 	# Desktop: Esc quits outright. On web, Esc is the pause key (handled by
@@ -139,10 +119,11 @@ func _track_mouse(m: Node) -> void:
 func _on_mouse_escaped(_who: Node) -> void:
 	_top_up_mice.call_deferred()
 
-# Fired the instant a mouse is pounced. Just refill it — mice don't count
-# toward the win condition, only pigeons do (see _on_bird_caught).
+# Fired the instant a mouse is pounced. Refill it and fill one pip of the hunger bar.
 func _on_mouse_caught(_who: Node) -> void:
 	_top_up_mice.call_deferred()
+	if hunger_bar:
+		hunger_bar.feed()
 
 func _top_up_mice() -> void:
 	var missing := mouse_count - get_tree().get_nodes_in_group("mice").size()
@@ -187,68 +168,6 @@ func _pick_mouse_spawn() -> Vector3:
 			best = p
 	return Vector3(best.x, 0.0, best.y)
 
-func _track_bird(b: Node) -> void:
-	if b.has_signal("died") and not b.died.is_connected(_on_bird_caught):
-		b.died.connect(_on_bird_caught)
-
-# Fired the instant a bird is pounced (birds have no "escaped" signal — every
-# death here is a catch). Mid-queue_free and inside its signal, so the refill is
-# deferred to the end of the frame.
-func _on_bird_caught(_who: Node) -> void:
-	_top_up_birds.call_deferred()
-	_register_catch()
-
-# Counts a pigeon pounce toward the win total (across respawns) and ends the
-# level once win_total_catches is reached.
-func _register_catch() -> void:
-	if game_won:
-		return
-	pigeons_caught += 1
-	_update_score_label()
-	if pigeons_caught >= win_total_catches:
-		_win_level()
-
-func _update_score_label() -> void:
-	if score_label:
-		score_label.text = "Pigeons: %d / %d" % [pigeons_caught, win_total_catches]
-
-func _win_level() -> void:
-	game_won = true
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	if win_label:
-		win_label.text = "You caught them all!\nPigeons %d / %d" % [pigeons_caught, win_total_catches]
-		win_label.visible = true
-	get_tree().paused = true
-
-func _top_up_birds() -> void:
-	var missing := bird_count - get_tree().get_nodes_in_group("birds").size()
-	for i in missing:
-		_spawn_bird()
-
-func _spawn_bird() -> void:
-	if bird_scene == null:
-		return
-	var pos := _pick_bird_spawn()
-	var b := bird_scene.instantiate()
-	b.position = pos  # set before add_child so Bird._ready() sees the real spawn spot
-	add_child(b)
-	b.set_landing_bounds(Vector3.ZERO, Vector3(bird_arena_radius, 0, bird_arena_radius))
-	_track_bird(b)
-
-# An XZ point at least bird_spawn_safe_distance from the cat, inside the same
-# origin-centred zone birds fly around within (see set_landing_bounds above).
-func _pick_bird_spawn() -> Vector3:
-	for attempt in range(30):
-		var angle := randf() * TAU
-		var radius := randf_range(0.0, bird_arena_radius)
-		var pos := Vector3(cos(angle) * radius, 0.0, sin(angle) * radius)
-		if is_instance_valid(cat):
-			var cat_pos := cat.global_position
-			cat_pos.y = 0.0
-			if pos.distance_to(cat_pos) < bird_spawn_safe_distance:
-				continue
-		return pos
-	return Vector3.ZERO  # fallback if 30 attempts all failed (very small/crowded arena)
 # Distance from `p` (XZ) to the closest live mouse, or a big number if there are none.
 func _nearest_mouse_dist(p: Vector2) -> float:
 	var nearest := 1.0e9

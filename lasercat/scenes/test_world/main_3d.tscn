@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://gqgkt1tpiijq" path="res://entities/cat/pixel_cat.tscn" id="6_o4vf6"]
 [ext_resource type="PackedScene" path="res://entities/grass/grass_field.tscn" id="7_grass"]
 [ext_resource type="PackedScene" path="res://entities/fence/fence_ring.tscn" id="8_fence"]
+[ext_resource type="PackedScene" path="res://entities/ui/hunger_bar.tscn" id="9_hunger"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ngk0r"]
 size = Vector2(420, 420)
@@ -72,3 +73,5 @@ transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0.009077311, 0.009087563, -0.
 [node name="PixelCat" parent="." unique_id=60752270 instance=ExtResource("6_o4vf6")]
 pixel_scale = 2
 include_mice = false
+
+[node name="HungerBar" parent="." instance=ExtResource("9_hunger")]
