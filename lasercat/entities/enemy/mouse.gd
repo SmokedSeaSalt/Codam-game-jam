@@ -47,6 +47,11 @@ enum MouseState { IDLE, FLEE }
 @export var separation_radius: float = 4.0                # start drifting apart from any mouse closer than this — wide, so mice stay visibly scattered on the big map
 @export var separation_strength: float = 1.6              # m/s of "spread out from the crowd" nudge
 
+@export_group("Audio")
+@export var squeak_proximity_range: float = 3.5   # cat within this range can trigger an idle squeak
+@export var squeak_cooldown: Vector2 = Vector2(4.0, 9.0)
+@export var squeak_volume_db: float = -4.0
+
 @export_group("Debug")
 ## Draws a translucent wedge for the vision cone: green = hasn't seen the cat,
 ## orange = cat is in view, red = fleeing. Turn off once the tuning feels right.
@@ -73,6 +78,8 @@ var _bob_phase: float = 0.0
 var _flee_speed_frac: float = 0.0  # 0..1 ramp from flee_start_speed_frac up to full sprint
 var _slow_flee: bool = false       # this bolt won't accelerate — the cat is allowed to catch it
 var _fence: Node = null            # the FenceRing; polled to catch a mouse that slips outside
+var _squeak_timer: float = 0.0     # counts down to the next proximity squeak
+var _squeak_player: AudioStreamPlayer  # non-positional — see the note in cat.gd's _setup_audio
 
 @onready var nav: NavigationAgent3D = $NavigationAgent3D
 
@@ -90,6 +97,11 @@ func _ready() -> void:
 	_reset_turn_timer()
 	if show_fov_cone:
 		_build_fov_cone()
+	_squeak_player = AudioStreamPlayer.new()
+	_squeak_player.name = "SqueakPlayer"
+	_squeak_player.volume_db = squeak_volume_db
+	add_child(_squeak_player)
+	_squeak_timer = randf_range(squeak_cooldown.x, squeak_cooldown.y)
 
 # Hop the model up and down while it's sprinting away, so it reads as scurrying
 # legs. Eases back to rest otherwise. (The pixel filter reads Model's transform,
@@ -118,6 +130,7 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_apply_run_bob(delta)
+	_update_proximity_squeak(delta)
 
 	# Pinned by an incoming pounce: freeze in place (gravity only) until it lands
 	# or the cat gives up. The mouse doesn't get to spot the cat mid-air and slip.
@@ -287,6 +300,32 @@ func _reset_turn_timer() -> void:
 func _find_cat() -> Node3D:
 	return get_tree().get_first_node_in_group("cat") as Node3D
 
+# A little squeak whenever the cat lingers within squeak_proximity_range — the
+# cooldown keeps it from spamming while the cat sits nearby stalking or resting.
+func _update_proximity_squeak(delta: float) -> void:
+	if _braced:
+		return
+	_squeak_timer -= delta
+	if _squeak_timer > 0.0:
+		return
+	if _cat == null or not is_instance_valid(_cat):
+		return
+	var to: Vector3 = _cat.global_position - global_position
+	to.y = 0.0
+	if to.length() <= squeak_proximity_range:
+		_play_squeak()
+
+func _play_squeak() -> void:
+	if _squeak_player == null:
+		return
+	var stream := SoundLibrary.random("mouse/squeak")
+	if stream == null:
+		return
+	_squeak_player.stream = stream
+	_squeak_player.pitch_scale = randf_range(0.9, 1.15)
+	_squeak_player.play()
+	_squeak_timer = randf_range(squeak_cooldown.x, squeak_cooldown.y)
+
 # Cat inside the vision cone (or inside startle_range from any angle).
 func _sees_cat() -> bool:
 	if _cat == null or not is_instance_valid(_cat):
@@ -340,6 +379,7 @@ func _inside_fence() -> bool:
 	return true
 
 func _start_flee() -> void:
+	_play_squeak()  # startled "eek!" the instant it bolts
 	_mstate = MouseState.FLEE
 	_flee_timer = flee_min_time
 	_flee_elapsed = 0.0

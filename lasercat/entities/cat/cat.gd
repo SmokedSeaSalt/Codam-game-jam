@@ -95,6 +95,17 @@ enum State { IDLE, WALK, CHASE, STALK, PURSUE, POUNCE, RECOVER }
 @export var turn_rate_smoothing: float = 8.0        # how fast the measured turn rate follows the actual heading change
 @export var turn_anim_invert: bool = false          # flip if the cat banks / steps the wrong way into a turn
 
+# Audio. Clips are pulled at random from assets/audio/cat/<category>/ via the
+# SoundLibrary autoload — see that script for how the folders are scanned.
+@export_group("Audio")
+@export var meow_interval: Vector2 = Vector2(10.0, 20.0)  # gap between idle "personality" meows
+@export var meow_volume_db: float = -3.0
+@export var voice_volume_db: float = -2.0        # attack / catch / win / death stings
+@export var purr_volume_db: float = -10.0
+@export var footstep_volume_db: float = -14.0
+@export var footstep_stride: float = 0.9         # metres between paw-strike sounds
+@export var attack_lead_time: float = 0.2        # minimum pounce windup, so the attack meow has a beat to land before the leap fires
+
 var current_state: State = State.IDLE
 var idle_timer: float = 0.0
 var _current_anim: String = ""
@@ -117,6 +128,12 @@ var _loco_side: int = 0             # -1 / 0 / +1 banking side currently held fo
 var laser_active: bool = false      # mirrored from the laser so we know where to go after a hunt
 var _grass_field: Node = null       # resolved lazily; queried for "am I on a trail?"
 var _fence: Node = null             # resolved lazily; queried for "is the dot inside the play area?"
+
+var _voice_player: AudioStreamPlayer  # meow / attack / catch — one at a time, interrupts itself
+var _purr_player: AudioStreamPlayer   # looped while settled and lying down
+var _foot_player: AudioStreamPlayer
+var _meow_timer: float = 0.0
+var _foot_dist: float = 0.0         # metres travelled since the last footstep sound
 
 @onready var nav_agent: NavigationAgent3D = $NavigationAgent3D
 #@onready var model: Node3D = $Cat_body  # rename to match your instanced glb node
@@ -154,6 +171,7 @@ func _ready() -> void:
 			if clip:
 				clip.loop_mode = Animation.LOOP_LINEAR
 	_facing_angle = model.rotation.y
+	_setup_audio()
 	change_state(State.IDLE)
 
 func _physics_process(delta: float) -> void:
@@ -192,6 +210,9 @@ func _physics_process(delta: float) -> void:
 	_update_facing(delta)
 	_update_animation()
 	_update_body_orientation(delta)
+	_update_ambient_meow(delta)
+	_update_footsteps(delta)
+	_update_purr()
 
 # If the cat is commanding movement but physically isn't going anywhere (wedged
 # in a concave bit of the stepped mesh), force a fresh path and, if it has
@@ -244,9 +265,14 @@ func change_state(new_state: State) -> void:
 		State.PURSUE:
 			_nav_goal_point = Vector3(INF, INF, INF)
 		State.POUNCE:
-			_windup_timer = pounce_windup_time
+			# attack_lead_time forces at least this much windup so the attack meow
+			# (played right now, the instant the pounce is committed) has a beat to
+			# land before the leap actually fires — pounce_windup_time alone defaults
+			# to 0 (see its comment: "the stalk IS the wind-up now").
+			_windup_timer = maxf(pounce_windup_time, attack_lead_time)
 			_leaped = false
 			_stop()
+			_play_attack_sound()
 			# Commit: pin the prey so it can't bolt in the split second before we land.
 			if _target_alive() and _pounce_target.has_method("brace_for_pounce"):
 				_pounce_target.brace_for_pounce()
@@ -327,6 +353,7 @@ func _process_pursue(_delta: float) -> void:
 			and _pounce_target.is_catchable_flee():
 		if _pounce_target.has_method("on_pounced"):
 			_pounce_target.on_pounced(self)
+		_play_catch_sound()
 		_snap_model_next = true
 		_end_hunt()
 		return
@@ -406,6 +433,7 @@ func _process_pounce(delta: float) -> void:
 	if flat <= pounce_hit_range:
 		if _pounce_target.has_method("on_pounced"):
 			_pounce_target.on_pounced(self)
+		_play_catch_sound()
 		_snap_model_next = true  # plant the model this frame
 		_end_hunt()  # straight back to the laser / idle — no lie-down over the kill
 		return
@@ -775,6 +803,107 @@ func _play(anim_name: String, hold: bool) -> void:
 		return
 	_current_anim = anim_name
 	anim_player.play(anim_name, anim_blend if changed else 0.0)
+
+# --- Audio -------------------------------------------------------------------
+# Clips come from assets/audio/cat/<category>/ via the SoundLibrary autoload.
+# _voice_player carries meow / attack / catch — one at a time, each new call
+# interrupts whatever it was already saying. Win/death are their own thing (see
+# play_win_fanfare / play_death_sound) since they're triggered by other nodes.
+
+func _setup_audio() -> void:
+	# Plain (non-positional) players, not AudioStreamPlayer3D: every level in this
+	# game runs a fixed-offset orthographic camera that sits tens of units from
+	# the cat (e.g. ~60 units in the open test world), so 3D distance attenuation
+	# just culls these past their max_distance and they never make a sound —
+	# these need to be reliably heard regardless of how the camera is framed.
+	_voice_player = AudioStreamPlayer.new()
+	_voice_player.name = "VoicePlayer"
+	add_child(_voice_player)
+
+	_purr_player = AudioStreamPlayer.new()
+	_purr_player.name = "PurrPlayer"
+	_purr_player.volume_db = purr_volume_db
+	add_child(_purr_player)
+	var purr_stream := SoundLibrary.random("cat/purr")
+	if purr_stream:
+		if purr_stream is AudioStreamOggVorbis:
+			(purr_stream as AudioStreamOggVorbis).loop = true
+		_purr_player.stream = purr_stream
+
+	_foot_player = AudioStreamPlayer.new()
+	_foot_player.name = "FootstepPlayer"
+	_foot_player.volume_db = footstep_volume_db
+	add_child(_foot_player)
+
+	_meow_timer = randf_range(meow_interval.x, meow_interval.y)
+
+# A bit of idle personality: an occasional random meow, skipped mid-hunt so it
+# doesn't give a sneaking cat away.
+func _update_ambient_meow(delta: float) -> void:
+	_meow_timer -= delta
+	if _meow_timer > 0.0:
+		return
+	_meow_timer = randf_range(meow_interval.x, meow_interval.y)
+	if current_state in [State.STALK, State.PURSUE, State.POUNCE]:
+		return
+	_play_voice("cat/meow", meow_volume_db)
+
+# Paw-strike sounds cadenced to actual travel distance, so a sprint clicks along
+# faster than a trot. Silent during STALK (sneaking) and POUNCE (airborne) on
+# purpose — those aren't supposed to be heard.
+func _update_footsteps(delta: float) -> void:
+	if current_state not in [State.WALK, State.CHASE, State.PURSUE]:
+		_foot_dist = 0.0
+		return
+	var flat := Vector2(velocity.x, velocity.z).length()
+	if flat < 0.05:
+		return
+	_foot_dist += flat * delta
+	if _foot_dist < footstep_stride:
+		return
+	_foot_dist = 0.0
+	var stream := SoundLibrary.random("cat/footstep")
+	if stream == null:
+		return
+	_foot_player.stream = stream
+	_foot_player.pitch_scale = randf_range(0.9, 1.15)
+	_foot_player.play()
+
+# Loops while settled and lying down (the same beat _update_animation uses to
+# swap from anim_settle to anim_rest), stops the moment the cat has somewhere to be.
+func _update_purr() -> void:
+	var resting := current_state == State.IDLE and idle_timer <= 0.0
+	if resting and not _purr_player.playing:
+		_purr_player.play()
+	elif not resting and _purr_player.playing:
+		_purr_player.stop()
+
+func _play_voice(category: String, db: float) -> void:
+	var stream := SoundLibrary.random(category)
+	if stream == null:
+		return
+	_voice_player.stream = stream
+	_voice_player.volume_db = db
+	_voice_player.pitch_scale = randf_range(0.95, 1.08)
+	_voice_player.play()
+
+func _play_attack_sound() -> void:
+	_play_voice("cat/attack", voice_volume_db)
+
+func _play_catch_sound() -> void:
+	_play_voice("cat/catch", voice_volume_db)
+
+## Called by lasagna_goal.gd when the cat reaches the lasagna. Played through
+## SoundLibrary's global player, not _voice_player: the level scene (and this
+## node with it) is about to be freed by the scene change, which would cut the
+## clip off mid-word if it played from here.
+func play_win_fanfare() -> void:
+	SoundLibrary.play_global("cat/win", voice_volume_db)
+	SoundLibrary.play_global("cat/eating", voice_volume_db, 0.6)
+
+## Called by the level when a vehicle hits the cat.
+func play_death_sound() -> void:
+	_play_voice("cat/death", voice_volume_db)
 
 #const DIRECTIONS := ["up", "up_right", "right", "down_right", "down", "left_down", "left", "left_up"]
 #@onready var camera: Camera3D = get_viewport().get_camera_3d()

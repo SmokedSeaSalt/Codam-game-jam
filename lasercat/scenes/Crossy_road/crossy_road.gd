@@ -49,12 +49,18 @@ func _ready() -> void:
 	_forward_sign = -1.0 if camera_offset.z >= 0.0 else 1.0
 	_snap_camera_to_cat()
 
+	var ambient := AmbientAudio.new()
+	ambient.train_enabled = true  # a road level gets the occasional distant train too
+	add_child(ambient)
+
 func _snap_camera_to_cat() -> void:
 	var z := cat.global_position.z + camera_offset.z
 	camera.global_position = Vector3(camera_center_x, camera_offset.y, z)
 	_cam_z_locked = z
 
 func _on_vehicle_hit_cat() -> void:
+	if cat.has_method("play_death_sound"):
+		cat.play_death_sound()
 	cat.respawn(_cat_spawn_pos)
 	# The camera only ever advances (camera_advance_only) — without this it would
 	# be left stranded up the road, framing empty space where the cat used to be.

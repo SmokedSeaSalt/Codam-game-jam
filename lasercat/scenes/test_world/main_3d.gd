@@ -59,6 +59,8 @@ func _ready() -> void:
 	# takes over Esc (pause + free the cursor); on desktop it disables itself.
 	add_child(PauseMenu.new())
 
+	add_child(AmbientAudio.new())
+
 func _unhandled_input(event: InputEvent) -> void:
 	# Desktop: Esc quits outright. On web, Esc is the pause key (handled by
 	# PauseMenu) and the browser eats the keystroke for pointer-lock exit anyway.

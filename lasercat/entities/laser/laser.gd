@@ -30,11 +30,16 @@ var _fence_rids: Array[RID] = []   # fence barrier bodies; the ground raycast sk
 var _fence_scanned: bool = false
 var _core: MeshInstance3D = null   # billboarded speck sitting in the middle of the pool
 var _sparks: CPUParticles3D = null
+var _toggle_player: AudioStreamPlayer = null
 
 func _ready() -> void:
 	_make_dot()
 	_make_sparks()
 	_show_dot(false)
+	_toggle_player = AudioStreamPlayer.new()
+	_toggle_player.name = "TogglePlayer"
+	_toggle_player.volume_db = -6.0
+	add_child(_toggle_player)
 
 # The dot is two quads sharing laser_dot.gdshader (its header explains why): a
 # wide soft POOL laid flat against the surface normal, so the light looks like
@@ -207,6 +212,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		active = not active
 		_show_dot(active)
 		laser_toggled.emit(active)
+		_play_toggle_sound()
 		_mouse_motion = Vector2.ZERO
 		if active:
 			_snap_to_cat()
@@ -353,6 +359,16 @@ func _clamp_to_screen(world_pos: Vector3) -> Vector3:
 	if clamped.is_equal_approx(sp):
 		return world_pos
 	return _screen_to_surface(clamped)
+
+func _play_toggle_sound() -> void:
+	if _toggle_player == null:
+		return
+	var stream := SoundLibrary.random("laser/toggle")
+	if stream == null:
+		return
+	_toggle_player.stream = stream
+	_toggle_player.pitch_scale = randf_range(0.95, 1.1)
+	_toggle_player.play()
 
 func _clamp_to_ground(p: Vector3) -> Vector3:
 	var half: Vector2 = (ground.mesh as PlaneMesh).size * 0.5
