@@ -19,7 +19,6 @@ config/icon="res://icon.svg"
 
 GameState="*res://scripts/game_state.gd"
 SoundLibrary="*res://scripts/sound_library.gd"
-SoundLibrary="*res://scripts/sound_library.gd"
 
 [display]
 
