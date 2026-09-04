@@ -124,6 +124,7 @@ var _fence: Node = null             # resolved lazily; queried for "is the dot i
 #@onready var anim_player: AnimationPlayer = $Cat_body/AnimationPlayer  # adjust path if nested differently
 @onready var model: Node3D = $Skeleton3D
 @onready var anim_player: AnimationPlayer = $AnimationPlayer
+@onready var exclamation_mark: Label3D = $ExclamationMark
 
 
 var target_pos: Vector3 = Vector3.ZERO:
@@ -233,6 +234,7 @@ func _apply_gravity(delta: float) -> void:
 
 func change_state(new_state: State) -> void:
 	current_state = new_state
+	exclamation_mark.visible = new_state in [State.STALK, State.PURSUE, State.POUNCE]
 	# Reset per-state values on entry
 	match new_state:
 		State.IDLE:
