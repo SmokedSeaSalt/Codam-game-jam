@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://dood645541gkc"
+path="res://.godot/imported/hex_forest_roadJ_detail.obj-b51e54dcd1eee5a7a188b759f9da11eb.mesh"
+
+[deps]
+
+files=["res://.godot/imported/hex_forest_roadJ_detail.obj-b51e54dcd1eee5a7a188b759f9da11eb.mesh"]
+
+source_file="res://assets/KayKit Medieval Builder Pack 1.0/Models/tiles/hex/obj/hex_forest_roadJ_detail.obj"
+dest_files=["res://.godot/imported/hex_forest_roadJ_detail.obj-b51e54dcd1eee5a7a188b759f9da11eb.mesh", "res://.godot/imported/hex_forest_roadJ_detail.obj-b51e54dcd1eee5a7a188b759f9da11eb.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

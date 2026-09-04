@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://dfvcdpivubct6"
+path="res://.godot/imported/detail_forestA.obj-6e0f8086a870601faf8367e0ab5b7591.mesh"
+
+[deps]
+
+files=["res://.godot/imported/detail_forestA.obj-6e0f8086a870601faf8367e0ab5b7591.mesh"]
+
+source_file="res://assets/KayKit Medieval Builder Pack 1.0/Models/objects/obj/detail_forestA.obj"
+dest_files=["res://.godot/imported/detail_forestA.obj-6e0f8086a870601faf8367e0ab5b7591.mesh", "res://.godot/imported/detail_forestA.obj-6e0f8086a870601faf8367e0ab5b7591.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

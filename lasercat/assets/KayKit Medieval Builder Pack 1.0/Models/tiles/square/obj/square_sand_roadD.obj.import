@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://ce2cp285g5j37"
+path="res://.godot/imported/square_sand_roadD.obj-f95256563a3ea36d17d87180ad60c00a.mesh"
+
+[deps]
+
+files=["res://.godot/imported/square_sand_roadD.obj-f95256563a3ea36d17d87180ad60c00a.mesh"]
+
+source_file="res://assets/KayKit Medieval Builder Pack 1.0/Models/tiles/square/obj/square_sand_roadD.obj"
+dest_files=["res://.godot/imported/square_sand_roadD.obj-f95256563a3ea36d17d87180ad60c00a.mesh", "res://.godot/imported/square_sand_roadD.obj-f95256563a3ea36d17d87180ad60c00a.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false
