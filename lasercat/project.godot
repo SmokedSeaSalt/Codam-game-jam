@@ -11,12 +11,15 @@ config_version=5
 [application]
 
 config/name="lasercat"
+run/main_scene="uid://cyi7nfpnpm42n"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
 
 GameState="*res://scripts/game_state.gd"
+SoundLibrary="*res://scripts/sound_library.gd"
+SoundLibrary="*res://scripts/sound_library.gd"
 
 [display]
 

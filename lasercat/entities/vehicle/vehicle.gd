@@ -18,6 +18,17 @@ class_name PatrolVehicle
 var loop_mode: int = 0
 
 
+# ============================================================
+# AUDIO
+# ============================================================
+
+@export_category("Audio")
+
+@export var pass_by_range: float = 10.0
+@export var pass_by_cooldown: float = 3.0
+@export var audio_volume_db: float = -6.0
+
+
 @export_range(0.0, 1.0, 0.01)
 var start_percent: float = 0.0
 
@@ -72,6 +83,9 @@ var _b_pos: Vector3
 
 var _dir: int = 1
 
+var _sound_player: AudioStreamPlayer  # non-positional — see the note in cat.gd's _setup_audio
+var _sound_timer: float = 0.0
+
 
 # ============================================================
 # CREATE MODEL DROPDOWN
@@ -114,6 +128,12 @@ func _ready() -> void:
 	add_to_group("vehicles")
 
 	body_entered.connect(_on_body_entered)
+
+	_sound_player = AudioStreamPlayer.new()
+	_sound_player.name = "SoundPlayer"
+	_sound_player.volume_db = audio_volume_db
+	add_child(_sound_player)
+	_sound_timer = randf_range(0.0, pass_by_cooldown)  # stagger multiple vehicles
 
 	# --------------------------------------------------------
 	# Get path markers.
@@ -293,6 +313,7 @@ func _process(delta: float) -> void:
 	if _total_dist <= 0.0:
 		return
 
+	_update_pass_sound(delta)
 
 	_traveled += speed * delta * _dir
 
@@ -362,3 +383,28 @@ func _on_body_entered(body: Node3D) -> void:
 
 	if body == cat:
 		hit_cat.emit()
+
+
+# ============================================================
+# SOUND
+# ============================================================
+
+# An engine pass-by clip whenever the cat is close enough to hear it, throttled
+# by pass_by_cooldown so it doesn't loop a short recording back to back.
+func _update_pass_sound(delta: float) -> void:
+
+	if _sound_timer > 0.0:
+		_sound_timer -= delta
+
+	if cat == null or not is_instance_valid(cat) or _sound_timer > 0.0:
+		return
+
+	if global_position.distance_to(cat.global_position) <= pass_by_range:
+
+		var stream := SoundLibrary.random("vehicle/car")
+
+		if stream:
+			_sound_player.stream = stream
+			_sound_player.pitch_scale = randf_range(0.95, 1.08)
+			_sound_player.play()
+			_sound_timer = pass_by_cooldown
