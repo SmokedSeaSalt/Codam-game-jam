@@ -213,6 +213,18 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventMouseMotion and active:
 		_mouse_motion += event.relative
 
+# Switches the laser on programmatically — call after start_at() so every level
+# opens with the dot already live in front of the cat, instead of making the
+# player click once just to begin. No-op if it's already on.
+func turn_on() -> void:
+	if active:
+		return
+	active = true
+	_show_dot(true)
+	laser_toggled.emit(true)
+	_mouse_motion = Vector2.ZERO
+	_snap_to_cat()
+
 # The mouse is captured, so there is no absolute cursor to read: on toggle-on the
 # dot appears on the ground a little in front of the sitting cat (so it isn't
 # hidden under the body), then the player leads it away with relative motion.
@@ -249,7 +261,13 @@ func _process(_delta: float) -> void:
 		laser_pos = rescued
 		target_updated.emit(laser_pos)
 
-	if _mouse_motion.length() >= mouse_deadzone:
+	# camera is assigned by the level's _ready() right after instancing the
+	# laser, but turn_on() now fires the moment the level starts (no more
+	# waiting for the player's first click) — if any mouse motion lands before
+	# that assignment (or during a scene transition, between the old level's
+	# laser being freed and the new one's _ready() wiring the new camera in),
+	# camera is still null here. Drop that motion rather than crash on it.
+	if camera != null and _mouse_motion.length() >= mouse_deadzone:
 		# Screen-space motion, so this works the same whether the mouse is free or
 		# MOUSE_MODE_CAPTURED (relative-only, no absolute cursor).
 		var screen := _clamp_screen_point(camera.unproject_position(laser_pos) + _mouse_motion * laser_sensitivity)

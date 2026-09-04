@@ -99,7 +99,7 @@ enum State { IDLE, WALK, CHASE, STALK, PURSUE, POUNCE, RECOVER, DEAD }
 # Audio. Clips are pulled at random from assets/audio/cat/<category>/ via the
 # SoundLibrary autoload — see that script for how the folders are scanned.
 @export_group("Audio")
-@export var meow_interval: Vector2 = Vector2(10.0, 20.0)  # gap between idle "personality" meows
+@export var meow_interval: Vector2 = Vector2(5.0, 10.0)  # gap between idle "personality" meows
 @export var meow_volume_db: float = -3.0
 @export var voice_volume_db: float = -2.0        # attack / catch / win / death stings
 @export var purr_volume_db: float = -10.0
@@ -111,6 +111,7 @@ var _current_anim: String = ""
 var _target_still_for: float = 0.0  # seconds since the laser last moved
 var _last_pos: Vector3 = Vector3.ZERO
 var _stuck_for: float = 0.0         # seconds we've been trying to move but haven't
+var _stuck_escalation: int = 0      # consecutive unstick attempts that didn't hold; forces a hard snap after a few
 var _pounce_target: Node3D = null
 var _stalk_timer: float = 0.0       # counts down stalk_time; the jump fires when it hits 0
 var _nav_goal_point: Vector3 = Vector3(INF, INF, INF)  # last point handed to the nav agent, to throttle re-paths
@@ -226,18 +227,45 @@ func _update_stuck(delta: float) -> void:
 		_stuck_for += delta
 	else:
 		_stuck_for = 0.0
+		_stuck_escalation = 0
 	if _stuck_for < 0.4:
 		return
 	_stuck_for = 0.0
+
+	# Physically wedged against a collider the navmesh doesn't know about (a
+	# building, fence, trash can, tree — anything with a collision shape that
+	# overlaps a walkable path but wasn't carved out of the navmesh): shove the
+	# body away from whatever it's pressed against before re-pathing. Without
+	# this, the fresh path below just walks straight back into the same
+	# obstruction and the cat is left animating in place forever at the
+	# animator's minimum stride scale — stuck, "running" in slow motion.
+	for i in get_slide_collision_count():
+		var n := get_slide_collision(i).get_normal()
+		n.y = 0.0
+		if n.length() > 0.01:
+			global_position += n.normalized() * 0.15
+
 	# Recompute the route — toward the prey if we're hunting, else the dot.
 	nav_agent.target_position = (_pounce_target.global_position
 		if current_state in [State.STALK, State.PURSUE] and _target_alive() else target_pos)
 	_nav_goal_point = Vector3(INF, INF, INF)  # let _move_toward_point re-issue next frame
 	var map := nav_agent.get_navigation_map()
-	if map.is_valid():
+	if _map_synced(map):
 		var on_mesh := NavigationServer3D.map_get_closest_point(map, global_position)
 		if Vector2(on_mesh.x - global_position.x, on_mesh.z - global_position.z).length() > 0.3:
 			global_position = on_mesh + Vector3(0.0, 0.1, 0.0)
+
+	# Still wedged after several re-path + shove attempts in a row (a pocket the
+	# navmesh thinks is open but is actually boxed in by collision geometry):
+	# stop trying to be subtle and drop the cat back onto the nearest reachable
+	# navmesh point outright, even if that's a bigger jump than the 0.3m nudge
+	# above allows.
+	_stuck_escalation += 1
+	if _stuck_escalation >= 3 and _map_synced(map):
+		var goal := (_pounce_target.global_position
+			if current_state in [State.STALK, State.PURSUE] and _target_alive() else target_pos)
+		global_position = NavigationServer3D.map_get_closest_point(map, goal)
+		_stuck_escalation = 0
 	
 func _apply_gravity(delta: float) -> void:
 	# `velocity.y <= 0` so a fresh pounce hop isn't cancelled the same frame it's set.
@@ -569,11 +597,26 @@ func _nav_goal() -> Vector3:
 	if next_pos.distance_to(global_position) > 0.05:
 		return next_pos
 	var map := nav_agent.get_navigation_map()
-	if map.is_valid():
+	if _map_synced(map):
 		var reachable := NavigationServer3D.map_get_closest_point(map, target_pos)
 		if reachable.distance_to(global_position) > 0.05:
 			return reachable
 	return global_position
+
+# A NavigationRegion3D's map isn't queryable the instant it enters the tree —
+# NavigationServer3D needs at least one sync pass first. A query made before
+# that (map_get_closest_point, map_get_closest_point on an iteration-0 map)
+# fails and can hand back garbage, e.g. Vector3.ZERO — which, on a level whose
+# ground sits far from world origin (levels_base), reads as a legitimate goal
+# and sends the cat sprinting off toward the origin the instant it spawns,
+# straight into geometry it has no business touching yet. This happens because
+# the very first laser.start_at() call jumps target_pos from its zero default
+# to the spawn point, which the target_pos setter reads as "the laser moved a
+# lot" and immediately kicks the cat into WALK — often before the map's first
+# sync. Gate every closest-point query on the map actually having synced at
+# least once; until then, treat "no path yet" as "stay put" instead of guessing.
+func _map_synced(map: RID) -> bool:
+	return map.is_valid() and NavigationServer3D.map_get_iteration_id(map) > 0
 
 # Horizontal (X/Z) gap to the laser. Y is ignored on purpose: the navmesh and
 # the cat's body rest at slightly different heights, so a full 3D check never

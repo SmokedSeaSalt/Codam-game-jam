@@ -33,6 +33,14 @@ var _fence: Node = null  # the FenceRing, if the scene has one
 # this script.
 @onready var hunger_bar := get_node_or_null("HungerBar/Bar")
 
+# Where the hunger bar filling sends the player next.
+@export_file("*.tscn") var next_level_scene: String = "res://scenes/haris_level/main_3d.tscn"
+# How long the final catch gets on screen (pounce landed, prey caught) before
+# the scene freezes and the next level loads in behind it.
+@export var catch_settle_time: float = 1.5
+
+var _level_complete: bool = false  # guards against a second fill/transfer firing
+
 var cam_offset: Vector3
 var _cat_prev_xz: Vector3  # cat's flat position last frame, for the sprint-drag below
 
@@ -42,6 +50,8 @@ func _ready() -> void:
 	laser.cat = cat
 	laser.target_updated.connect(_on_target_updated)
 	laser.laser_toggled.connect(_on_laser_toggled)
+	if hunger_bar:
+		hunger_bar.filled.connect(_on_hunger_bar_filled)
 
 	camera.look_at(Vector3.ZERO)
 	cam_offset = camera.global_position
@@ -53,6 +63,7 @@ func _ready() -> void:
 	var spawn_xz := Vector3(cat.global_position.x, 0.0, cat.global_position.z)
 	cat.global_position.y = _surface_y(spawn_xz.x, spawn_xz.z) + 0.1
 	laser.start_at(spawn_xz)
+	laser.turn_on()
 	camera.global_position = spawn_xz + cam_offset
 	_cat_prev_xz = Vector3(cat.global_position.x, 0.0, cat.global_position.z)
 
@@ -124,6 +135,42 @@ func _on_mouse_caught(_who: Node) -> void:
 	_top_up_mice.call_deferred()
 	if hunger_bar:
 		hunger_bar.feed()
+
+# Bar's full — the cat's had its fill here. Hand off to the next level.
+func _on_hunger_bar_filled() -> void:
+	if _level_complete:
+		return
+	_level_complete = true
+	_transition_to_next_level()
+
+# Let the catch that filled the bar hold on screen for a beat, then freeze the
+# whole tree (pause — see pause_menu.gd for the same trick) and load the next
+# level in the background so the swap lands with no hitch.
+func _transition_to_next_level() -> void:
+	await get_tree().create_timer(catch_settle_time).timeout
+	get_tree().paused = true
+
+	var err := ResourceLoader.load_threaded_request(next_level_scene)
+	if err != OK:
+		push_warning("Failed to start loading %s (error %d)" % [next_level_scene, err])
+		get_tree().paused = false
+		get_tree().change_scene_to_file(next_level_scene)
+		return
+
+	# process_frame keeps firing while paused, so this loop still advances.
+	var status := ResourceLoader.load_threaded_get_status(next_level_scene)
+	while status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+		await get_tree().process_frame
+		status = ResourceLoader.load_threaded_get_status(next_level_scene)
+
+	get_tree().paused = false
+	if status != ResourceLoader.THREAD_LOAD_LOADED:
+		push_warning("Failed to load %s (status %d)" % [next_level_scene, status])
+		get_tree().change_scene_to_file(next_level_scene)
+		return
+
+	var packed := ResourceLoader.load_threaded_get(next_level_scene) as PackedScene
+	get_tree().change_scene_to_packed(packed)
 
 func _top_up_mice() -> void:
 	var missing := mouse_count - get_tree().get_nodes_in_group("mice").size()

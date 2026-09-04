@@ -39,6 +39,7 @@ func _ready() -> void:
 	# Seeds laser_pos + dot position from the cat's current spot, so the first
 	# toggle-on doesn't snap the dot in from (0,0,0).
 	laser.start_at(Vector3(cat.global_position.x, 0.0, cat.global_position.z))
+	laser.turn_on()
 
 	# Every vehicle registers in the "vehicles" group from its own _ready, which has
 	# already run by the time this (the root's) _ready fires — listen for a hit.

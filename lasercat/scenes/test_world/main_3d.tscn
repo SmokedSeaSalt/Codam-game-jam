@@ -75,3 +75,6 @@ pixel_scale = 2
 include_mice = false
 
 [node name="HungerBar" parent="." instance=ExtResource("9_hunger")]
+
+[node name="Bar" parent="HungerBar" index="0"]
+max_value = 1

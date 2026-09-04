@@ -8,6 +8,10 @@ extends Control
 ## level can size it to its own catch goal via max_value instead of the bar
 ## being hardcoded to one number.
 
+## Fired once, the moment the bar first reaches max_value — the level's cue to
+## move on (e.g. transfer to the next scene).
+signal filled
+
 @export var max_value: int = 8:
 	set(v):
 		max_value = maxi(v, 1)
@@ -16,8 +20,11 @@ extends Control
 
 @export_range(0, 999) var value: int = 0:
 	set(v):
+		var was_full := value >= max_value
 		value = clampi(v, 0, max_value)
 		queue_redraw()
+		if value >= max_value and not was_full:
+			filled.emit()
 
 @export_group("Pixel style")
 @export var pip_size: Vector2 = Vector2(20, 20)
