@@ -19,8 +19,81 @@
 [ext_resource type="Texture2D" uid="uid://dyqlr6h5ntpc0" path="res://assets/sprites/Infrastructure/verbena_flower_low_poly_3.png" id="17_rknn2"]
 [ext_resource type="Texture2D" uid="uid://cwy4s7i0y0yso" path="res://assets/sprites/Infrastructure/verbena_flower_low_poly_4.png" id="18_10wn4"]
 [ext_resource type="PackedScene" uid="uid://dhxfo0bdd4je" path="res://entities/enemy/pigeon.tscn" id="19_0xijr"]
-[ext_resource type="PackedScene" path="res://entities/ui/hunger_bar.tscn" id="20_hunger"]
-[ext_resource type="Script" uid="uid://xud5ch6hphum" path="res://scenes/levels_base/level_base.gd" id="21_lvlbase"]
+
+[sub_resource type="GDScript" id="GDScript_sesgv"]
+script/source = "extends Node3D
+@onready var camera: Camera3D = $Camera3D
+@onready var cat: CharacterBody3D = $Cat
+@onready var ground: MeshInstance3D = $NavigationRegion3D/Ground
+@onready var terrain: Node3D = $Terrain
+@onready var laser: Node3D = $Laser
+
+enum FollowMode { LASER, CAT }
+
+@export var camera_follow_mode: FollowMode = FollowMode.CAT
+@export var camera_follow_speed: float = 9.0
+
+var cam_offset: Vector3
+
+func _ready() -> void:
+
+	laser.camera = camera
+	laser.ground = ground
+	laser.cat = cat
+	laser.target_updated.connect(_on_target_updated)
+	laser.laser_toggled.connect(_on_laser_toggled)
+
+	camera.look_at(Vector3.ZERO)
+	cam_offset = camera.global_position
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+	# Wait one physics step so terrain's runtime-built collider exists,
+	# then drop the cat, camera and laser onto the surface.
+	await get_tree().physics_frame
+	var spawn_xz := Vector3(cat.global_position.x, 0.0, cat.global_position.z)
+	cat.global_position.y = _surface_y(spawn_xz.x, spawn_xz.z) + 0.1
+	laser.start_at(spawn_xz)
+	camera.global_position = spawn_xz + cam_offset
+
+# Terrain sizes itself from the heightmap png, so match the invisible clamp
+# plane to its footprint (children run _ready before us, so cols/rows are set).
+func _fit_ground_to_terrain() -> void:
+	var pm := ground.mesh as PlaneMesh
+	if pm and \"cols\" in terrain:
+		pm.size = Vector2(terrain.cols * terrain.tile_size, terrain.rows * terrain.tile_size)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed(\"ui_cancel\"):
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		get_tree().quit()
+
+func _process(delta: float) -> void:
+	var cam_target := _camera_focus() + cam_offset
+	var t := 1.0 - exp(-camera_follow_speed * delta)
+	camera.global_position = camera.global_position.lerp(cam_target, t)
+	if camera.global_position.distance_to(cam_target) < 0.01:
+		camera.global_position = cam_target
+
+func _camera_focus() -> Vector3:
+	match camera_follow_mode:
+		FollowMode.CAT:
+			return Vector3(cat.global_position.x, 0.0, cat.global_position.z)
+		_:
+			return Vector3(laser.laser_pos.x, 0.0, laser.laser_pos.z)
+
+func _on_target_updated(pos: Vector3) -> void:
+	cat.target_pos = pos
+
+func _on_laser_toggled(is_on: bool) -> void:
+	if not is_on:
+		cat.change_state(cat.State.IDLE)
+
+func _surface_y(x: float, z: float) -> float:
+	var params := PhysicsRayQueryParameters3D.create(Vector3(x, 100.0, z), Vector3(x, -100.0, z))
+	params.exclude = [cat.get_rid()]
+	var hit := get_world_3d().direct_space_state.intersect_ray(params)
+	return hit.position.y if hit else 0.0
+"
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_bycu6"]
 
@@ -32,7 +105,7 @@ background_mode = 2
 sky = SubResource("Sky_l2gwq")
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_a5ypo"]
-vertices = PackedVector3Array(-68.251644, 0, -93.7323, -68.251644, 0, -13.7323, 26.748356, 0, -13.7323, 26.748356, 0, -93.7323)
+vertices = PackedVector3Array(-67.75165, 0, -93.2323, -67.75165, 0, -14.2323, 26.248352, 0, -14.2323, 26.248352, 0, -93.2323)
 polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cnnpy"]
@@ -40,7 +113,7 @@ albedo_color = Color(0.4392157, 0.32941177, 0.24313726, 1)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_jtcur"]
 material = SubResource("StandardMaterial3D_cnnpy")
-size = Vector2(95, 80)
+size = Vector2(150, 150)
 
 [sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_d1t1e"]
 
@@ -2663,7 +2736,7 @@ size = Vector3(7, 1, 4)
 size = Vector3(14, 1, 1)
 
 [node name="Level1" type="Node3D" unique_id=50827243]
-script = ExtResource("21_lvlbase")
+script = SubResource("GDScript_sesgv")
 
 [node name="Pigeon" parent="." unique_id=1322832980 instance=ExtResource("19_0xijr")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0.225, -68)
@@ -2676,20 +2749,15 @@ transform = Transform3D(0.8660254, 0.38302222, -0.32139382, 0, 0.64278764, 0.766
 shadow_enabled = true
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=304871636]
-transform = Transform3D(-0.58778524, -0.37356248, 0.7176069, 0, 0.8870109, 0.46174863, -0.80901706, 0.271409, -0.5213719, 27, 19, -34)
+transform = Transform3D(-0.58778524, -0.37356248, 0.7176069, 0, 0.8870109, 0.46174863, -0.80901706, 0.271409, -0.5213719, 50, 37, -68)
 projection = 1
 current = true
 size = 20.0
 
 [node name="Cat" parent="." unique_id=1703446555 instance=ExtResource("2_o1vhs")]
-transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -55.031998, 0, -61.127)
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 20.968002, 0, -28.126999)
 
 [node name="Laser" parent="." unique_id=2146666949 instance=ExtResource("3_j2gmy")]
-
-[node name="HungerBar" parent="." instance=ExtResource("20_hunger")]
-
-[node name="Bar" parent="HungerBar" index="0"]
-max_value = 1
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=921824299]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.555, 0, -0.5)
@@ -3042,6 +3110,174 @@ transform = Transform3D(1, -2.4492937e-16, 1.323489e-23, 2.4492937e-16, 1, 0, -1
 [node name="Building_3_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_20" unique_id=1720896461]
 transform = Transform3D(-2.1855694e-06, -1.2705494e-21, -50, 0, 50, -2.0587765e-22, 50, 0, -2.1855694e-06, 5550.2285, 0, -3112.9893)
 mesh = SubResource("ArrayMesh_5l6nb")
+
+[node name="Building_21" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=560432054]
+transform = Transform3D(1, -2.4492937e-16, 1.323489e-23, 2.4492937e-16, 1, 0, -1.323489e-23, 0, 1, -2670, -6.157625e-13, 2900.0007)
+
+[node name="Building_8_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_21" unique_id=540108014]
+transform = Transform3D(50, -2.9646153e-21, 2.1175824e-21, 2.9646153e-21, 50, 0, -2.1175824e-21, 0, 50, 2541.6748, -1.204478e-12, 8969.807)
+mesh = SubResource("ArrayMesh_ed2h4")
+
+[node name="Building_22" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=1976497164]
+transform = Transform3D(1, -2.4492937e-16, 1.323489e-23, 2.4492937e-16, 1, 0, -1.323489e-23, 0, 1, -9234.875, -0.00019073486, 6740.5176)
+
+[node name="Building_7_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_22" unique_id=1297645549]
+transform = Transform3D(50, -2.9646153e-21, 2.5410988e-21, 2.9646153e-21, 50, 0, -2.5410988e-21, 0, 50, 7499.309, 0, 4919.7153)
+mesh = SubResource("ArrayMesh_qvg6l")
+
+[node name="Building_23" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=978454596]
+transform = Transform3D(1, 1.323489e-23, 1.323489e-23, -1.323489e-23, 1, -1.2246466e-16, -1.323489e-23, 1.2246466e-16, 1, -6125.9326, -1.2333033e-12, 4794.323)
+
+[node name="Building_2_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_23" unique_id=1169028932]
+transform = Transform3D(50, -1.4012861e-31, 3.3881318e-21, -1.4012868e-31, 50, 0, -3.3881318e-21, 0, 50, 5169.9185, 3.1997964e-13, 7035.4272)
+mesh = SubResource("ArrayMesh_m2f5u")
+
+[node name="Building_24" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=1908824037]
+transform = Transform3D(1, -2.4492937e-16, 1.323489e-23, 2.4492937e-16, 1, 0, -1.323489e-23, 0, 1, -3511.91, 0, 4400)
+
+[node name="Building_3_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_24" unique_id=781785600]
+transform = Transform3D(50, -2.5410988e-21, 1.2705494e-21, 2.5410988e-21, 50, 0, -1.2705494e-21, 0, 50, 4255.388, 0, 7265.941)
+mesh = SubResource("ArrayMesh_5l6nb")
+
+[node name="Building_25" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=306906496]
+transform = Transform3D(1, -2.4492937e-16, 1.323489e-23, 2.4492937e-16, 1, 0, -1.323489e-23, 0, 1, -2670, -9.443762e-13, 6200.001)
+
+[node name="Building_8_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_25" unique_id=8857716]
+transform = Transform3D(50, -2.9646153e-21, 2.1175824e-21, 2.9646153e-21, 50, 0, -2.1175824e-21, 0, 50, 5341.675, -1.2187651e-12, 5669.806)
+mesh = SubResource("ArrayMesh_ed2h4")
+
+[node name="Building_26" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=93243585]
+transform = Transform3D(1, -2.4492937e-16, 1.323489e-23, 2.4492937e-16, 1, 0, -1.323489e-23, 0, 1, -9234.875, -0.00019073486, 10040.518)
+
+[node name="Building_7_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_26" unique_id=57618687]
+transform = Transform3D(50, -2.9646153e-21, 2.5410988e-21, 2.9646153e-21, 50, 0, -2.5410988e-21, 0, 50, 10899.309, 0, 1619.7139)
+mesh = SubResource("ArrayMesh_qvg6l")
+
+[node name="Building_27" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=1128842403]
+transform = Transform3D(1, 1.323489e-23, 1.323489e-23, -1.323489e-23, 1, -1.2246466e-16, -1.323489e-23, 1.2246466e-16, 1, -6125.932, -1.5619169e-12, 8094.3237)
+
+[node name="Building_2_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_27" unique_id=1917884876]
+transform = Transform3D(50, -1.4012861e-31, 3.3881318e-21, -1.4012868e-31, 50, 0, -3.3881318e-21, 0, 50, 10447.303, 0, 3792.053)
+mesh = SubResource("ArrayMesh_m2f5u")
+
+[node name="Building_28" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=1720866323]
+transform = Transform3D(1, -2.4492937e-16, 1.323489e-23, 2.4492937e-16, 1, 0, -1.323489e-23, 0, 1, -3511.91, -3.2861376e-13, 7700.0005)
+
+[node name="Building_3_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_28" unique_id=499594331]
+transform = Transform3D(50, -2.9646153e-21, 1.2705494e-21, 2.9646153e-21, 50, 0, -1.2705494e-21, 0, 50, 7055.3877, -1.2613476e-12, 3989.8809)
+mesh = SubResource("ArrayMesh_5l6nb")
+
+[node name="Building_29" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=362212580]
+transform = Transform3D(1, -2.4492937e-16, 1.323489e-23, 2.4492937e-16, 1, 0, -1.323489e-23, 0, 1, -6911.91, -4.163799e-13, 4400.0005)
+
+[node name="Building_3_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_29" unique_id=1992407881]
+transform = Transform3D(50, -2.5410988e-21, 1.2705494e-21, 2.5410988e-21, 50, 0, -1.2705494e-21, 0, 50, 4255.388, 0, 7265.941)
+mesh = SubResource("ArrayMesh_5l6nb")
+
+[node name="Building_30" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=790242692]
+transform = Transform3D(1, -2.4492937e-16, 1.323489e-23, 2.4492937e-16, 1, 0, -1.323489e-23, 0, 1, -6069.9995, -1.0321423e-12, 2900.0007)
+
+[node name="Building_8_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_30" unique_id=197439102]
+transform = Transform3D(50, -2.9646153e-21, 2.1175824e-21, 2.9646153e-21, 50, 0, -2.1175824e-21, 0, 50, 2488, 0, 8969.807)
+mesh = SubResource("ArrayMesh_ed2h4")
+
+[node name="Building_31" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=1307388138]
+transform = Transform3D(1, -2.4492937e-16, 1.323489e-23, 2.4492937e-16, 1, 0, -1.323489e-23, 0, 1, -12634.875, -0.00019073486, 6740.5176)
+
+[node name="Building_7_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_31" unique_id=1664883522]
+transform = Transform3D(-2.1855694e-06, -1.2705494e-21, 50, 0, 50, 1.4881882e-21, -50, 0, -2.1855694e-06, 7554.3696, 0, 5119.7144)
+mesh = SubResource("ArrayMesh_qvg6l")
+
+[node name="Building_32" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=1581798889]
+transform = Transform3D(1, 1.323489e-23, 1.323489e-23, -1.323489e-23, 1, -1.2246466e-16, -1.323489e-23, 1.2246466e-16, 1, -9525.933, -1.6496829e-12, 4794.323)
+
+[node name="Building_2_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_32" unique_id=142570992]
+transform = Transform3D(50, -1.4012861e-31, 3.3881318e-21, -1.4012868e-31, 50, 0, -3.3881318e-21, 0, 50, 5169.9185, 3.1997964e-13, 7035.4272)
+mesh = SubResource("ArrayMesh_m2f5u")
+
+[node name="Building_33" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=1337043375]
+transform = Transform3D(1, -2.4492937e-16, 1.323489e-23, 2.4492937e-16, 1, 0, -1.323489e-23, 0, 1, -10311.91, -8.3275953e-13, 4400.0005)
+
+[node name="Building_3_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_33" unique_id=1004685197]
+transform = Transform3D(-2.1855694e-06, -4.2351647e-22, -50, 0, 50, -2.0587765e-22, 50, 0, -2.1855694e-06, 5508.353, 0, 6540.861)
+mesh = SubResource("ArrayMesh_5l6nb")
+
+[node name="Building_34" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=783714048]
+transform = Transform3D(1, -2.4492932e-16, 1.323489e-23, 2.4492932e-16, 1, 0, -1.323489e-23, 0, 1, -8155.933, -1.6511923e-12, 6494.323)
+
+[node name="Building_8_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_34" unique_id=1124816800]
+transform = Transform3D(50, 2.9646153e-21, 1.2705494e-21, -2.9646153e-21, 50, 0, -1.2705494e-21, 0, 50, 3084.5732, 0.00019073486, -2276.151)
+mesh = SubResource("ArrayMesh_ed2h4")
+
+[node name="Building_35" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=57529497]
+transform = Transform3D(1, -2.4492932e-16, 1.323489e-23, 2.4492932e-16, 1, 0, -1.323489e-23, 0, 1, -8215.933, -1.6585403e-12, 6494.323)
+
+[node name="Building_7_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_35" unique_id=460935612]
+transform = Transform3D(-2.1855694e-06, 1.6940659e-21, -50, 0, 50, 1.9117047e-21, 50, 0, -2.1855694e-06, 3401.831, -3.832202e-13, -278.26172)
+mesh = SubResource("ArrayMesh_qvg6l")
+
+[node name="Building_36" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=1604663064]
+transform = Transform3D(1, 1.323489e-23, 1.323489e-23, -1.323489e-23, 1, -1.2246466e-16, -1.323489e-23, 1.2246466e-16, 1, -8125.933, -1.6475186e-12, 6494.323)
+
+[node name="Building_2_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_36" unique_id=502649830]
+transform = Transform3D(50, -1.4012861e-31, 3.3881318e-21, -1.4012868e-31, 50, 0, -3.3881318e-21, 0, 50, 3169.748, 0, -1209.898)
+mesh = SubResource("ArrayMesh_m2f5u")
+
+[node name="Building_37" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=676593412]
+transform = Transform3D(1, -2.4492937e-16, 1.323489e-23, 2.4492937e-16, 1, 0, -1.323489e-23, 0, 1, -11554.172, -0.00019073486, 13953.946)
+
+[node name="Building_3_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_37" unique_id=1327546857]
+transform = Transform3D(-2.1855694e-06, -2.9646153e-21, -50, 0, 50, -2.0587765e-22, 50, 0, -2.1855694e-06, 6650.2285, 0, -10612.989)
+mesh = SubResource("ArrayMesh_5l6nb")
+
+[node name="Building_38" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=676015229]
+transform = Transform3D(1, -2.4492932e-16, 1.323489e-23, 2.4492932e-16, 1, 0, -1.323489e-23, 0, 1, -8155.9326, -2.0295957e-12, 10294.323)
+
+[node name="Building_8_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_38" unique_id=2059010092]
+transform = Transform3D(50, 2.9646153e-21, 1.2705494e-21, -2.9646153e-21, 50, 0, -1.2705494e-21, 0, 50, 3084.5732, 0.00019073486, -2276.151)
+mesh = SubResource("ArrayMesh_ed2h4")
+
+[node name="Building_39" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=2059546797]
+transform = Transform3D(1, -2.4492932e-16, 1.323489e-23, 2.4492932e-16, 1, 0, -1.323489e-23, 0, 1, -8215.933, -2.036944e-12, 10294.323)
+
+[node name="Building_7_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_39" unique_id=157614046]
+transform = Transform3D(-2.1855694e-06, 1.6940659e-21, -50, 0, 50, 1.9117047e-21, 50, 0, -2.1855694e-06, 3401.831, -3.832202e-13, -278.26172)
+mesh = SubResource("ArrayMesh_qvg6l")
+
+[node name="Building_40" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=146353062]
+transform = Transform3D(1, 1.323489e-23, 1.323489e-23, -1.323489e-23, 1, -1.2246466e-16, -1.323489e-23, 1.2246466e-16, 1, -8125.933, -2.0259222e-12, 10294.323)
+
+[node name="Building_2_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_40" unique_id=2050286990]
+transform = Transform3D(50, -1.4012861e-31, 3.3881318e-21, -1.4012868e-31, 50, 0, -3.3881318e-21, 0, 50, 3169.748, 0, -1209.898)
+mesh = SubResource("ArrayMesh_m2f5u")
+
+[node name="Building_41" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=1545694993]
+transform = Transform3D(1, -2.4492937e-16, 1.323489e-23, 2.4492937e-16, 1, 0, -1.323489e-23, 0, 1, -11554.172, -0.00019073486, 17753.945)
+
+[node name="Building_3_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_41" unique_id=2106827881]
+transform = Transform3D(-2.1855694e-06, -2.9646153e-21, -50, 0, 50, -2.0587765e-22, 50, 0, -2.1855694e-06, 6650.2285, 0, -10612.989)
+mesh = SubResource("ArrayMesh_5l6nb")
+
+[node name="Building_42" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=623894378]
+transform = Transform3D(1, -2.4492932e-16, 1.323489e-23, 2.4492932e-16, 1, 0, -1.323489e-23, 0, 1, -8315.933, -1.292383e-12, 2694.3228)
+
+[node name="Building_7_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_42" unique_id=294385200]
+transform = Transform3D(-2.1855694e-06, 1.6940659e-21, -50, 0, 50, 1.9117047e-21, 50, 0, -2.1855694e-06, 3401.831, -3.832202e-13, -278.26172)
+mesh = SubResource("ArrayMesh_qvg6l")
+
+[node name="Building_43" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=1766087160]
+transform = Transform3D(1, -2.4492937e-16, 1.323489e-23, 2.4492937e-16, 1, 0, -1.323489e-23, 0, 1, 830.00006, -5.1574977e-13, 6200.001)
+
+[node name="Building_8_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_43" unique_id=457539029]
+transform = Transform3D(50, -2.9646153e-21, 2.1175824e-21, 2.9646153e-21, 50, 0, -2.1175824e-21, 0, 50, 5341.675, -1.2187651e-12, 5669.806)
+mesh = SubResource("ArrayMesh_ed2h4")
+
+[node name="Building_44" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings" unique_id=1701785818]
+transform = Transform3D(1, -2.4492937e-16, 1.323489e-23, 2.4492937e-16, 1, 0, -1.323489e-23, 0, 1, -5734.8745, -0.00019073486, 10040.518)
+
+[node name="Building_7_Mat_0" type="MeshInstance3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack/Buildings/Building_44" unique_id=263447589]
+transform = Transform3D(50, -2.9646153e-21, 2.5410988e-21, 2.9646153e-21, 50, 0, -2.5410988e-21, 0, 50, 10899.309, 0, 1619.7139)
+mesh = SubResource("ArrayMesh_qvg6l")
 
 [node name="Props" type="Node3D" parent="Infra/Houses/a3a81cd78bb449e89dea06bfb1edfd2b_fbx/RootNode/Low_Poly_Simple_Urban_City_3D_Asset_Pack" unique_id=1821486276]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.389318, 0.03324778, 147.71378)
