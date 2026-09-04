@@ -1,0 +1,146 @@
+[gd_scene format=3 uid="uid://dhxfo0bdd4je"]
+
+[ext_resource type="Script" uid="uid://2pigobshttb4" path="res://entities/enemy/pigeon.gd" id="1_n4tf1"]
+[ext_resource type="Texture2D" uid="uid://d4kvuosg1igvk" path="res://entities/enemy/Pidgeon Sprite Sheet.png" id="2_n4tf1"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_fors6"]
+radius = 0.15
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_x4an6"]
+atlas = ExtResource("2_n4tf1")
+region = Rect2(0, 96, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cv0tl"]
+atlas = ExtResource("2_n4tf1")
+region = Rect2(32, 96, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8h2jt"]
+atlas = ExtResource("2_n4tf1")
+region = Rect2(64, 96, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qac65"]
+atlas = ExtResource("2_n4tf1")
+region = Rect2(96, 96, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o0yop"]
+atlas = ExtResource("2_n4tf1")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mbghl"]
+atlas = ExtResource("2_n4tf1")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0pcas"]
+atlas = ExtResource("2_n4tf1")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_r48sw"]
+atlas = ExtResource("2_n4tf1")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c80e0"]
+atlas = ExtResource("2_n4tf1")
+region = Rect2(0, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0mghp"]
+atlas = ExtResource("2_n4tf1")
+region = Rect2(32, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uerbw"]
+atlas = ExtResource("2_n4tf1")
+region = Rect2(64, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2qihx"]
+atlas = ExtResource("2_n4tf1")
+region = Rect2(96, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dupgw"]
+atlas = ExtResource("2_n4tf1")
+region = Rect2(0, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p6xef"]
+atlas = ExtResource("2_n4tf1")
+region = Rect2(32, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yoo43"]
+atlas = ExtResource("2_n4tf1")
+region = Rect2(64, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_x2tc5"]
+atlas = ExtResource("2_n4tf1")
+region = Rect2(96, 64, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_fors6"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_x4an6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cv0tl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8h2jt")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qac65")
+}],
+"loop": 1,
+"name": &"fly",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o0yop")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mbghl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0pcas")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_r48sw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c80e0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0mghp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uerbw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2qihx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dupgw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p6xef")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yoo43")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_x2tc5")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 5.0
+}]
+
+[node name="Pigeon" type="CharacterBody3D" unique_id=1322832980]
+collision_layer = 2
+script = ExtResource("1_n4tf1")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=598049134]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+shape = SubResource("SphereShape3D_fors6")
+
+[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="." unique_id=345207028]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0.37579865, 0)
+pixel_size = 0.0167
+sprite_frames = SubResource("SpriteFrames_fors6")
+animation = &"fly"

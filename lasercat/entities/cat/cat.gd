@@ -1,6 +1,6 @@
 extends CharacterBody3D
 
-enum State { IDLE, WALK, CHASE, STALK, PURSUE, POUNCE, RECOVER }
+enum State { IDLE, WALK, CHASE, STALK, PURSUE, POUNCE, RECOVER, DEAD }
 
 @export var walk_speed: float = 2.0
 @export var chase_speed: float = 5.0
@@ -67,6 +67,7 @@ enum State { IDLE, WALK, CHASE, STALK, PURSUE, POUNCE, RECOVER }
 @export var anim_sprint: String = "RigRoot|Loco_Sprint-IP" # played while running a bolting mouse down (PURSUE)
 @export var anim_pounce: String = "RigRoot|Jump_Run-IP"    # played on the jump
 @export var anim_pounce_recover: String = "RigRoot|Lying_00-IP"  # low pose held after landing
+@export var anim_death: String = "RigRoot|Death_01-IP"      # played once and held while the cat lies hit, until the scene respawns it
 @export var anim_pounce_speed_scale: float = 1.5           # play the jump clip this much faster
 @export var anim_blend: float = 0.25
 
@@ -140,6 +141,7 @@ var _foot_dist: float = 0.0         # metres travelled since the last footstep s
 #@onready var anim_player: AnimationPlayer = $Cat_body/AnimationPlayer  # adjust path if nested differently
 @onready var model: Node3D = $Skeleton3D
 @onready var anim_player: AnimationPlayer = $AnimationPlayer
+@onready var exclamation_mark: Label3D = $ExclamationMark
 
 
 var target_pos: Vector3 = Vector3.ZERO:
@@ -151,7 +153,7 @@ var target_pos: Vector3 = Vector3.ZERO:
 		# Don't hijack the nav agent while hunting — the hunt states point it at the
 		# prey, and _end_hunt re-points it at the dot when they finish. (Without this
 		# guard, leading the laser mid-chase yanks the cat's heading toward the dot.)
-		if current_state not in [State.STALK, State.PURSUE, State.POUNCE, State.RECOVER]:
+		if current_state not in [State.STALK, State.PURSUE, State.POUNCE, State.RECOVER, State.DEAD]:
 			nav_agent.target_position = value
 		if moved and _target_in_bounds():
 			# Laser is being led inside the fence: keep chasing (and don't sit)
@@ -179,7 +181,7 @@ func _physics_process(delta: float) -> void:
 	_faced_this_frame = false   # set true again by _face_dir if the cat steers this frame
 
 	# Enemies win over the laser: if one is close enough, break off and start stalking.
-	if current_state not in [State.STALK, State.PURSUE, State.POUNCE, State.RECOVER]:
+	if current_state not in [State.STALK, State.PURSUE, State.POUNCE, State.RECOVER, State.DEAD]:
 		var prey := _closest_enemy_in_range()
 		if prey:
 			_begin_stalk(prey)
@@ -199,6 +201,8 @@ func _physics_process(delta: float) -> void:
 			_process_pounce(delta)
 		State.RECOVER:
 			_process_recover(delta)
+		State.DEAD:
+			_process_dead(delta)
 
 	_apply_gravity(delta)
 	move_and_slide()
@@ -251,6 +255,7 @@ func _apply_gravity(delta: float) -> void:
 
 func change_state(new_state: State) -> void:
 	current_state = new_state
+	exclamation_mark.visible = new_state in [State.STALK, State.PURSUE, State.POUNCE]
 	# Reset per-state values on entry
 	match new_state:
 		State.IDLE:
@@ -278,6 +283,8 @@ func change_state(new_state: State) -> void:
 				_pounce_target.brace_for_pounce()
 		State.RECOVER:
 			_recover_timer = pounce_recover_time
+			_stop()
+		State.DEAD:
 			_stop()
 
 func _process_idle(delta: float) -> void:
@@ -453,6 +460,12 @@ func _process_recover(delta: float) -> void:
 	if _recover_timer <= 0.0:
 		_end_hunt()
 
+# Hit by a vehicle: lie frozen in the death pose. Nothing to tick per-frame — the
+# scene script (crossy_road.gd) owns the "lie there for N seconds" beat and calls
+# respawn() when it's over.
+func _process_dead(_delta: float) -> void:
+	_stop()
+
 func _target_alive() -> bool:
 	return _pounce_target != null and is_instance_valid(_pounce_target)
 
@@ -499,6 +512,21 @@ func _end_hunt() -> void:
 	nav_agent.target_position = target_pos  # point the agent back at the dot
 	# Back to business: chase the dot if the laser's on, otherwise settle.
 	change_state(State.WALK if laser_active else State.IDLE)
+
+# Hit by a vehicle. Drops any hunt in progress (releasing a braced mouse, same as
+# _end_hunt) but lands in DEAD instead of WALK/IDLE, freezing on anim_death until
+# the scene calls respawn(). A no-op if already dead so a second car overlapping
+# the corpse doesn't restart the animation or double-release the hunt.
+func die() -> void:
+	if current_state == State.DEAD:
+		return
+	if _target_alive() and _pounce_target.has_method("release_pounce"):
+		_pounce_target.release_pounce()
+	_pounce_target = null
+	_windup_timer = 0.0
+	_recover_timer = 0.0
+	_leaped = false
+	change_state(State.DEAD)
 
 # Full reset: drop any hunt in progress (releasing a braced mouse), snap the body
 # to `at_position`, and clear the stuck/pounce bookkeeping. Used to put the cat
@@ -751,6 +779,9 @@ func _update_animation() -> void:
 	elif current_state == State.RECOVER:
 		want = anim_pounce_recover
 		hold = true  # low pose, held for pounce_recover_time
+	elif current_state == State.DEAD:
+		want = anim_death
+		hold = true  # one-shot death clip: play it once and hold the last frame
 	elif current_state == State.CHASE:
 		# Flat-out run after a laser that's been led out of range.
 		want = _loco_clip(anim_sprint)

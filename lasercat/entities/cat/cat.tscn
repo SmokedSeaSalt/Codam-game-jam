@@ -9,6 +9,8 @@ radius = 0.15
 
 [node name="Cat" type="CharacterBody3D" unique_id=1703446555]
 script = ExtResource("1_ip1iv")
+walk_speed = 3.0
+chase_speed = 6.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=349346798]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
@@ -21,3 +23,10 @@ target_desired_distance = 0.35
 [node name="Skeleton3D" parent="." unique_id=276100670 instance=ExtResource("2_8aoym")]
 
 [node name="AnimationPlayer" parent="." unique_id=347298546 instance=ExtResource("3_xxcxc")]
+
+[node name="ExclamationMark" type="Label3D" parent="." unique_id=1234567890]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0.8, 0)
+text = "!"
+font_size = 40
+outline_size = 2
+visible = false
