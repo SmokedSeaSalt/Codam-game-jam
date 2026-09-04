@@ -27,6 +27,17 @@ enum FollowMode { LASER, CAT }
 
 var _fence: Node = null  # the FenceRing, if the scene has one
 
+# Birds. Same top-up pattern as mice: whenever one is pounced (died), a
+# replacement drops in elsewhere in the arena, at least bird_spawn_safe_distance
+# from the cat. Birds also fly themselves to a new spot inside this same
+# bird_arena_radius (see Bird.set_landing_bounds) whenever they spot the cat, so
+# spawning them within that same zone keeps them from immediately having to fly
+# back into bounds.
+@export var bird_scene: PackedScene = preload("res://entities/enemy/pigeon.tscn")
+@export var bird_count: int = 2
+@export var bird_arena_radius: float = 13.0
+@export var bird_spawn_safe_distance: float = 10.0
+
 # Pixel-style hunger bar (res://entities/ui/hunger_bar.tscn), bottom-middle of
 # the screen. Fills one pip per mouse caught; its cap (max_value) is set on
 # the HungerBar/Bar node itself so it's adjustable per-level without touching
