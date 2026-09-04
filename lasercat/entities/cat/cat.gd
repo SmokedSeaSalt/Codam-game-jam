@@ -443,6 +443,17 @@ func _end_hunt() -> void:
 	# Back to business: chase the dot if the laser's on, otherwise settle.
 	change_state(State.WALK if laser_active else State.IDLE)
 
+# Full reset: drop any hunt in progress (releasing a braced mouse), snap the body
+# to `at_position`, and clear the stuck/pounce bookkeeping. Used to put the cat
+# back at the start after something (a vehicle) needs it to respawn.
+func respawn(at_position: Vector3) -> void:
+	_end_hunt()  # clears _pounce_target / hunt timers; settles into WALK or IDLE
+	velocity = Vector3.ZERO
+	global_position = at_position
+	_last_pos = at_position
+	_stuck_for = 0.0
+	_snap_model_next = true  # skip the height lerp for one frame so it doesn't sink in from the old spot
+
 # Horizontal (X/Z) gap between the cat and an arbitrary world point.
 func _flat_distance_to(p: Vector3) -> float:
 	var d := p - global_position

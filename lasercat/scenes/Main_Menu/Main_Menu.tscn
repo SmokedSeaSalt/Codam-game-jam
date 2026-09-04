@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://2yw8x6anc2oo" path="res://assets/Cat_Bed.tscn" id="8_ggc8f"]
 [ext_resource type="Texture2D" uid="uid://0utdus6air6s" path="res://assets/sprites/mouse-left-button-svgrepo-com.svg" id="9_ggc8f"]
 [ext_resource type="Texture2D" uid="uid://divwmso3gbnkm" path="res://assets/sprites/laser-pointer.png" id="10_rl2mp"]
+[ext_resource type="PackedScene" uid="uid://dy5aadh06m7wh" path="res://scenes/Crossy_road/lasagna.glb" id="11_ncdfp"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_0773x"]
 
@@ -120,3 +121,7 @@ texture = ExtResource("9_ggc8f")
 [node name="LaserIcon" type="Sprite3D" parent="." unique_id=1261022319]
 transform = Transform3D(0.7, 0, 0, 0, -4.371139e-08, 0.7, 0, -1, -3.059797e-08, -2.5603292, 0.01, -3.166222)
 texture = ExtResource("10_rl2mp")
+
+[node name="Sketchfab_Scene" parent="." unique_id=1704292546 instance=ExtResource("11_ncdfp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2517643, 0.29261303, 1.049161)
+visible = false
