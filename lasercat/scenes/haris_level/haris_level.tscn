@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://usp4b4j6ey4s" path="res://entities/cat/cat.tscn" id="2_fuvng"]
 [ext_resource type="PackedScene" uid="uid://cmkwouakyghy8" path="res://entities/laser/Laser.tscn" id="3_bp0ae"]
 [ext_resource type="MeshLibrary" uid="uid://c11u0k520x1ll" path="res://assets/haris_level textures/mesh libraries/library2.tres" id="5_fuvng"]
+[ext_resource type="PackedScene" path="res://entities/ui/hunger_bar.tscn" id="6_hunger"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_3wcom"]
 
@@ -43,8 +44,18 @@ size = Vector3(6.1335144, 3.7533875, 12.184391)
 
 [node name="Main" type="Node3D" unique_id=1563088858]
 script = ExtResource("1_k4b5w")
-mouse_count = 0
 bird_count = 7
+mouse_count = 8
+next_level_scene = "res://scenes/levels_base/Level_base.tscn"
+
+[node name="Ground" type="MeshInstance3D" parent="." unique_id=1081182626]
+mesh = SubResource("PlaneMesh_ngk0r")
+surface_material_override/0 = SubResource("StandardMaterial3D_ground")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Ground" unique_id=1006370136]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground/StaticBody3D" unique_id=1671684802]
+shape = SubResource("WorldBoundaryShape3D_floor")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1033023909]
 environment = SubResource("Environment_ngk0r")

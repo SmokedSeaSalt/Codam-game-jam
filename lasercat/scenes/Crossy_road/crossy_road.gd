@@ -39,6 +39,7 @@ func _ready() -> void:
 	# Seeds laser_pos + dot position from the cat's current spot, so the first
 	# toggle-on doesn't snap the dot in from (0,0,0).
 	laser.start_at(Vector3(cat.global_position.x, 0.0, cat.global_position.z))
+	laser.turn_on()
 
 	# Every vehicle registers in the "vehicles" group from its own _ready, which has
 	# already run by the time this (the root's) _ready fires — listen for a hit.
@@ -50,6 +51,10 @@ func _ready() -> void:
 	_forward_sign = -1.0 if camera_offset.z >= 0.0 else 1.0
 	_snap_camera_to_cat()
 
+	var ambient := AmbientAudio.new()
+	ambient.train_enabled = true  # a road level gets the occasional distant train too
+	add_child(ambient)
+
 func _snap_camera_to_cat() -> void:
 	var z := cat.global_position.z + camera_offset.z
 	camera.global_position = Vector3(camera_center_x, camera_offset.y, z)
@@ -60,6 +65,8 @@ func _on_vehicle_hit_cat() -> void:
 		return  # already lying there — a second car overlapping the corpse is a no-op
 	cat.die()  # freezes in the death pose; _update_animation plays anim_death and holds it
 	await get_tree().create_timer(death_lie_time).timeout
+	if cat.has_method("play_death_sound"):
+		cat.play_death_sound()
 	cat.respawn(_cat_spawn_pos)
 	# The camera only ever advances (camera_advance_only) — without this it would
 	# be left stranded up the road, framing empty space where the cat used to be.

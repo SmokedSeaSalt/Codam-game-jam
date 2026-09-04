@@ -96,12 +96,22 @@ enum State { IDLE, WALK, CHASE, STALK, PURSUE, POUNCE, RECOVER, DEAD }
 @export var turn_rate_smoothing: float = 8.0        # how fast the measured turn rate follows the actual heading change
 @export var turn_anim_invert: bool = false          # flip if the cat banks / steps the wrong way into a turn
 
+# Audio. Clips are pulled at random from assets/audio/cat/<category>/ via the
+# SoundLibrary autoload — see that script for how the folders are scanned.
+@export_group("Audio")
+@export var meow_interval: Vector2 = Vector2(5.0, 10.0)  # gap between idle "personality" meows
+@export var meow_volume_db: float = -3.0
+@export var voice_volume_db: float = -2.0        # attack / catch / win / death stings
+@export var purr_volume_db: float = -10.0
+@export var attack_lead_time: float = 0.2        # minimum pounce windup, so the attack meow has a beat to land before the leap fires
+
 var current_state: State = State.IDLE
 var idle_timer: float = 0.0
 var _current_anim: String = ""
 var _target_still_for: float = 0.0  # seconds since the laser last moved
 var _last_pos: Vector3 = Vector3.ZERO
 var _stuck_for: float = 0.0         # seconds we've been trying to move but haven't
+var _stuck_escalation: int = 0      # consecutive unstick attempts that didn't hold; forces a hard snap after a few
 var _pounce_target: Node3D = null
 var _stalk_timer: float = 0.0       # counts down stalk_time; the jump fires when it hits 0
 var _nav_goal_point: Vector3 = Vector3(INF, INF, INF)  # last point handed to the nav agent, to throttle re-paths
@@ -118,6 +128,10 @@ var _loco_side: int = 0             # -1 / 0 / +1 banking side currently held fo
 var laser_active: bool = false      # mirrored from the laser so we know where to go after a hunt
 var _grass_field: Node = null       # resolved lazily; queried for "am I on a trail?"
 var _fence: Node = null             # resolved lazily; queried for "is the dot inside the play area?"
+
+var _voice_player: AudioStreamPlayer  # meow / attack / catch — one at a time, interrupts itself
+var _purr_player: AudioStreamPlayer   # looped while settled and lying down
+var _meow_timer: float = 0.0
 
 @onready var nav_agent: NavigationAgent3D = $NavigationAgent3D
 #@onready var model: Node3D = $Cat_body  # rename to match your instanced glb node
@@ -156,6 +170,7 @@ func _ready() -> void:
 			if clip:
 				clip.loop_mode = Animation.LOOP_LINEAR
 	_facing_angle = model.rotation.y
+	_setup_audio()
 	change_state(State.IDLE)
 
 func _physics_process(delta: float) -> void:
@@ -196,6 +211,8 @@ func _physics_process(delta: float) -> void:
 	_update_facing(delta)
 	_update_animation()
 	_update_body_orientation(delta)
+	_update_ambient_meow(delta)
+	_update_purr()
 
 # If the cat is commanding movement but physically isn't going anywhere (wedged
 # in a concave bit of the stepped mesh), force a fresh path and, if it has
@@ -210,18 +227,45 @@ func _update_stuck(delta: float) -> void:
 		_stuck_for += delta
 	else:
 		_stuck_for = 0.0
+		_stuck_escalation = 0
 	if _stuck_for < 0.4:
 		return
 	_stuck_for = 0.0
+
+	# Physically wedged against a collider the navmesh doesn't know about (a
+	# building, fence, trash can, tree — anything with a collision shape that
+	# overlaps a walkable path but wasn't carved out of the navmesh): shove the
+	# body away from whatever it's pressed against before re-pathing. Without
+	# this, the fresh path below just walks straight back into the same
+	# obstruction and the cat is left animating in place forever at the
+	# animator's minimum stride scale — stuck, "running" in slow motion.
+	for i in get_slide_collision_count():
+		var n := get_slide_collision(i).get_normal()
+		n.y = 0.0
+		if n.length() > 0.01:
+			global_position += n.normalized() * 0.15
+
 	# Recompute the route — toward the prey if we're hunting, else the dot.
 	nav_agent.target_position = (_pounce_target.global_position
 		if current_state in [State.STALK, State.PURSUE] and _target_alive() else target_pos)
 	_nav_goal_point = Vector3(INF, INF, INF)  # let _move_toward_point re-issue next frame
 	var map := nav_agent.get_navigation_map()
-	if map.is_valid():
+	if _map_synced(map):
 		var on_mesh := NavigationServer3D.map_get_closest_point(map, global_position)
 		if Vector2(on_mesh.x - global_position.x, on_mesh.z - global_position.z).length() > 0.3:
 			global_position = on_mesh + Vector3(0.0, 0.1, 0.0)
+
+	# Still wedged after several re-path + shove attempts in a row (a pocket the
+	# navmesh thinks is open but is actually boxed in by collision geometry):
+	# stop trying to be subtle and drop the cat back onto the nearest reachable
+	# navmesh point outright, even if that's a bigger jump than the 0.3m nudge
+	# above allows.
+	_stuck_escalation += 1
+	if _stuck_escalation >= 3 and _map_synced(map):
+		var goal := (_pounce_target.global_position
+			if current_state in [State.STALK, State.PURSUE] and _target_alive() else target_pos)
+		global_position = NavigationServer3D.map_get_closest_point(map, goal)
+		_stuck_escalation = 0
 	
 func _apply_gravity(delta: float) -> void:
 	# `velocity.y <= 0` so a fresh pounce hop isn't cancelled the same frame it's set.
@@ -249,9 +293,14 @@ func change_state(new_state: State) -> void:
 		State.PURSUE:
 			_nav_goal_point = Vector3(INF, INF, INF)
 		State.POUNCE:
-			_windup_timer = pounce_windup_time
+			# attack_lead_time forces at least this much windup so the attack meow
+			# (played right now, the instant the pounce is committed) has a beat to
+			# land before the leap actually fires — pounce_windup_time alone defaults
+			# to 0 (see its comment: "the stalk IS the wind-up now").
+			_windup_timer = maxf(pounce_windup_time, attack_lead_time)
 			_leaped = false
 			_stop()
+			_play_attack_sound()
 			# Commit: pin the prey so it can't bolt in the split second before we land.
 			if _target_alive() and _pounce_target.has_method("brace_for_pounce"):
 				_pounce_target.brace_for_pounce()
@@ -342,6 +391,7 @@ func _process_pursue(_delta: float) -> void:
 			and _pounce_target.is_catchable_flee():
 		if _pounce_target.has_method("on_pounced"):
 			_pounce_target.on_pounced(self)
+		_play_catch_sound()
 		_snap_model_next = true
 		_end_hunt()
 		return
@@ -421,6 +471,7 @@ func _process_pounce(delta: float) -> void:
 	if flat <= pounce_hit_range:
 		if _pounce_target.has_method("on_pounced"):
 			_pounce_target.on_pounced(self)
+		_play_catch_sound()
 		_snap_model_next = true  # plant the model this frame
 		_end_hunt()  # straight back to the laser / idle — no lie-down over the kill
 		return
@@ -581,11 +632,26 @@ func _nav_goal() -> Vector3:
 	if next_pos.distance_to(global_position) > 0.05:
 		return next_pos
 	var map := nav_agent.get_navigation_map()
-	if map.is_valid():
+	if _map_synced(map):
 		var reachable := NavigationServer3D.map_get_closest_point(map, target_pos)
 		if reachable.distance_to(global_position) > 0.05:
 			return reachable
 	return global_position
+
+# A NavigationRegion3D's map isn't queryable the instant it enters the tree —
+# NavigationServer3D needs at least one sync pass first. A query made before
+# that (map_get_closest_point, map_get_closest_point on an iteration-0 map)
+# fails and can hand back garbage, e.g. Vector3.ZERO — which, on a level whose
+# ground sits far from world origin (levels_base), reads as a legitimate goal
+# and sends the cat sprinting off toward the origin the instant it spawns,
+# straight into geometry it has no business touching yet. This happens because
+# the very first laser.start_at() call jumps target_pos from its zero default
+# to the spawn point, which the target_pos setter reads as "the laser moved a
+# lot" and immediately kicks the cat into WALK — often before the map's first
+# sync. Gate every closest-point query on the map actually having synced at
+# least once; until then, treat "no path yet" as "stay put" instead of guessing.
+func _map_synced(map: RID) -> bool:
+	return map.is_valid() and NavigationServer3D.map_get_iteration_id(map) > 0
 
 # Horizontal (X/Z) gap to the laser. Y is ignored on purpose: the navmesh and
 # the cat's body rest at slightly different heights, so a full 3D check never
@@ -841,6 +907,81 @@ func _play(anim_name: String, hold: bool) -> void:
 		return
 	_current_anim = anim_name
 	anim_player.play(anim_name, anim_blend if changed else 0.0)
+
+# --- Audio -------------------------------------------------------------------
+# Clips come from assets/audio/cat/<category>/ via the SoundLibrary autoload.
+# _voice_player carries meow / attack / catch — one at a time, each new call
+# interrupts whatever it was already saying. Win/death are their own thing (see
+# play_win_fanfare / play_death_sound) since they're triggered by other nodes.
+
+func _setup_audio() -> void:
+	# Plain (non-positional) players, not AudioStreamPlayer3D: every level in this
+	# game runs a fixed-offset orthographic camera that sits tens of units from
+	# the cat (e.g. ~60 units in the open test world), so 3D distance attenuation
+	# just culls these past their max_distance and they never make a sound —
+	# these need to be reliably heard regardless of how the camera is framed.
+	_voice_player = AudioStreamPlayer.new()
+	_voice_player.name = "VoicePlayer"
+	add_child(_voice_player)
+
+	_purr_player = AudioStreamPlayer.new()
+	_purr_player.name = "PurrPlayer"
+	_purr_player.volume_db = purr_volume_db
+	add_child(_purr_player)
+	var purr_stream := SoundLibrary.random("cat/purr")
+	if purr_stream:
+		if purr_stream is AudioStreamOggVorbis:
+			(purr_stream as AudioStreamOggVorbis).loop = true
+		_purr_player.stream = purr_stream
+
+	_meow_timer = randf_range(meow_interval.x, meow_interval.y)
+
+# A bit of idle personality: an occasional random meow, skipped mid-hunt so it
+# doesn't give a sneaking cat away.
+func _update_ambient_meow(delta: float) -> void:
+	_meow_timer -= delta
+	if _meow_timer > 0.0:
+		return
+	_meow_timer = randf_range(meow_interval.x, meow_interval.y)
+	if current_state in [State.STALK, State.PURSUE, State.POUNCE]:
+		return
+	_play_voice("cat/meow", meow_volume_db)
+
+# Loops while settled and lying down (the same beat _update_animation uses to
+# swap from anim_settle to anim_rest), stops the moment the cat has somewhere to be.
+func _update_purr() -> void:
+	var resting := current_state == State.IDLE and idle_timer <= 0.0
+	if resting and not _purr_player.playing:
+		_purr_player.play()
+	elif not resting and _purr_player.playing:
+		_purr_player.stop()
+
+func _play_voice(category: String, db: float) -> void:
+	var stream := SoundLibrary.random(category)
+	if stream == null:
+		return
+	_voice_player.stream = stream
+	_voice_player.volume_db = db
+	_voice_player.pitch_scale = randf_range(0.95, 1.08)
+	_voice_player.play()
+
+func _play_attack_sound() -> void:
+	_play_voice("cat/attack", voice_volume_db)
+
+func _play_catch_sound() -> void:
+	_play_voice("cat/catch", voice_volume_db)
+
+## Called by lasagna_goal.gd when the cat reaches the lasagna. Played through
+## SoundLibrary's global player, not _voice_player: the level scene (and this
+## node with it) is about to be freed by the scene change, which would cut the
+## clip off mid-word if it played from here.
+func play_win_fanfare() -> void:
+	SoundLibrary.play_global("cat/win", voice_volume_db)
+	SoundLibrary.play_global("cat/eating", voice_volume_db, 0.6)
+
+## Called by the level when a vehicle hits the cat.
+func play_death_sound() -> void:
+	_play_voice("cat/death", voice_volume_db)
 
 #const DIRECTIONS := ["up", "up_right", "right", "down_right", "down", "left_down", "left", "left_up"]
 #@onready var camera: Camera3D = get_viewport().get_camera_3d()

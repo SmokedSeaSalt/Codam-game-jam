@@ -306,6 +306,8 @@ func _process(delta: float) -> void:
 		target = 1.0 if target >= 0.5 else 0.0
 	elif target >= 0.85:
 		target = 1.0  # ignore one stray blocked ray so the dither never fires in the open
+	else:
+		target = maxf(target, min_visibility)  # dissolve, but keep a readable silhouette — never fully disappear
 	_vis = lerp(_vis, target, clampf(delta * occlusion_smooth, 0.0, 1.0))
 	if _vis > 0.995:
 		_vis = 1.0

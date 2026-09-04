@@ -27,16 +27,19 @@ enum FollowMode { LASER, CAT }
 
 var _fence: Node = null  # the FenceRing, if the scene has one
 
-# Birds. Same top-up pattern as mice: whenever one is pounced (died), a
-# replacement drops in elsewhere in the arena, at least bird_spawn_safe_distance
-# from the cat. Birds also fly themselves to a new spot inside this same
-# bird_arena_radius (see Bird.set_landing_bounds) whenever they spot the cat, so
-# spawning them within that same zone keeps them from immediately having to fly
-# back into bounds.
-@export var bird_scene: PackedScene = preload("res://entities/enemy/pigeon.tscn")
-@export var bird_count: int = 2
-@export var bird_arena_radius: float = 13.0
-@export var bird_spawn_safe_distance: float = 10.0
+# Pixel-style hunger bar (res://entities/ui/hunger_bar.tscn), bottom-middle of
+# the screen. Fills one pip per mouse caught; its cap (max_value) is set on
+# the HungerBar/Bar node itself so it's adjustable per-level without touching
+# this script.
+@onready var hunger_bar := get_node_or_null("HungerBar/Bar")
+
+# Where the hunger bar filling sends the player next.
+@export_file("*.tscn") var next_level_scene: String = "res://scenes/haris_level/main_3d.tscn"
+# How long the final catch gets on screen (pounce landed, prey caught) before
+# the scene freezes and the next level loads in behind it.
+@export var catch_settle_time: float = 1.5
+
+var _level_complete: bool = false  # guards against a second fill/transfer firing
 
 var cam_offset: Vector3
 var _cat_prev_xz: Vector3  # cat's flat position last frame, for the sprint-drag below
@@ -47,6 +50,8 @@ func _ready() -> void:
 	laser.cat = cat
 	laser.target_updated.connect(_on_target_updated)
 	laser.laser_toggled.connect(_on_laser_toggled)
+	if hunger_bar:
+		hunger_bar.filled.connect(_on_hunger_bar_filled)
 
 	camera.look_at(Vector3.ZERO)
 	cam_offset = camera.global_position
@@ -58,10 +63,11 @@ func _ready() -> void:
 	var spawn_xz := Vector3(cat.global_position.x, 0.0, cat.global_position.z)
 	cat.global_position.y = _surface_y(spawn_xz.x, spawn_xz.z) + 0.1
 	laser.start_at(spawn_xz)
+	laser.turn_on()
 	camera.global_position = spawn_xz + cam_offset
 	_cat_prev_xz = Vector3(cat.global_position.x, 0.0, cat.global_position.z)
 
-	# Any mice/birds already dropped into the scene get tracked too; then top up to count.
+	# Any mice already dropped into the scene get tracked too; then top up to count.
 	for m in get_tree().get_nodes_in_group("mice"):
 		_track_mouse(m)
 	_top_up_mice()
@@ -72,6 +78,10 @@ func _ready() -> void:
 	# Added last so its first frame runs after the spawn setup above. On web it
 	# takes over Esc (pause + free the cursor); on desktop it disables itself.
 	add_child(PauseMenu.new())
+
+	var ambient_audio := AmbientAudio.new()
+	ambient_audio.bird_enabled = false  # no pigeons in test_world — don't play their ambience
+	add_child(ambient_audio)
 
 func _unhandled_input(event: InputEvent) -> void:
 	# Desktop: Esc quits outright. On web, Esc is the pause key (handled by
@@ -122,6 +132,44 @@ func _track_mouse(m: Node) -> void:
 # inside its signal, so defer the refill to the end of the frame.
 func _on_mouse_gone(_who: Node) -> void:
 	_top_up_mice.call_deferred()
+	if hunger_bar:
+		hunger_bar.feed()
+
+# Bar's full — the cat's had its fill here. Hand off to the next level.
+func _on_hunger_bar_filled() -> void:
+	if _level_complete:
+		return
+	_level_complete = true
+	_transition_to_next_level()
+
+# Let the catch that filled the bar hold on screen for a beat, then freeze the
+# whole tree (pause — see pause_menu.gd for the same trick) and load the next
+# level in the background so the swap lands with no hitch.
+func _transition_to_next_level() -> void:
+	await get_tree().create_timer(catch_settle_time).timeout
+	get_tree().paused = true
+
+	var err := ResourceLoader.load_threaded_request(next_level_scene)
+	if err != OK:
+		push_warning("Failed to start loading %s (error %d)" % [next_level_scene, err])
+		get_tree().paused = false
+		get_tree().change_scene_to_file(next_level_scene)
+		return
+
+	# process_frame keeps firing while paused, so this loop still advances.
+	var status := ResourceLoader.load_threaded_get_status(next_level_scene)
+	while status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+		await get_tree().process_frame
+		status = ResourceLoader.load_threaded_get_status(next_level_scene)
+
+	get_tree().paused = false
+	if status != ResourceLoader.THREAD_LOAD_LOADED:
+		push_warning("Failed to load %s (status %d)" % [next_level_scene, status])
+		get_tree().change_scene_to_file(next_level_scene)
+		return
+
+	var packed := ResourceLoader.load_threaded_get(next_level_scene) as PackedScene
+	get_tree().change_scene_to_packed(packed)
 
 func _top_up_mice() -> void:
 	var missing := mouse_count - get_tree().get_nodes_in_group("mice").size()

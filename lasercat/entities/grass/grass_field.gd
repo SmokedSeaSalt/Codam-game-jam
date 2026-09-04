@@ -66,12 +66,19 @@ const GRASS_SHADER := preload("res://entities/grass/grass.gdshader")
 @export var path_branch_max_steps: int = 40   # a fork runs at most this long
 @export var path_max_segments: int = 420      # hard cap on total generated segments
 
+@export_group("Audio")
+@export var rustle_min_speed: float = 0.3           # cat's flat speed needed to stir a rustle
+@export var rustle_interval: Vector2 = Vector2(1.6, 3.2)
+@export var rustle_volume_db: float = -10.0
+
 var _mat: ShaderMaterial
 var _cat: Node3D
 var _mice_scratch: Array = []
 var _path_pts: Array = []          # Array[PackedVector2Array] — each a trail polyline in world XZ
 var _path_min := Vector2(INF, INF) # overall AABB of the trail network, for a cheap query reject
 var _path_max := Vector2(-INF, -INF)
+var _rustle_player: AudioStreamPlayer  # non-positional — see the note in cat.gd's _setup_audio
+var _rustle_timer: float = 0.0
 
 func _ready() -> void:
 	add_to_group("grass_field")  # the cat looks this up to check if it's on a trail
@@ -178,13 +185,20 @@ func _ready() -> void:
 
 	_cat = get_tree().get_first_node_in_group("cat") as Node3D
 
-func _process(_delta: float) -> void:
+	_rustle_player = AudioStreamPlayer.new()
+	_rustle_player.name = "RustlePlayer"
+	_rustle_player.volume_db = rustle_volume_db
+	add_child(_rustle_player)
+	_rustle_timer = randf_range(rustle_interval.x, rustle_interval.y)
+
+func _process(delta: float) -> void:
 	if _mat == null:
 		return
 	if _cat == null or not is_instance_valid(_cat):
 		_cat = get_tree().get_first_node_in_group("cat") as Node3D
 	if _cat:
 		_mat.set_shader_parameter("cat_pos", _cat.global_position)
+	_update_rustle(delta)
 
 	var n := 0
 	for m in get_tree().get_nodes_in_group("mice"):
@@ -417,6 +431,25 @@ func _seg_dist_sq(px: float, pz: float, ax: float, az: float, bx: float, bz: flo
 # reject first, then a straight scan of every segment (a few hundred at most).
 func is_on_path(world_pos: Vector3, margin: float = 0.0) -> bool:
 	return path_distance(world_pos) <= path_width * 0.5 + margin
+
+# A rustling-grass one-shot while the cat is actually moving through the field —
+# silent while it stands still so the field doesn't hiss at an idle cat.
+func _update_rustle(delta: float) -> void:
+	_rustle_timer -= delta
+	if _rustle_timer > 0.0:
+		return
+	if _cat == null or not is_instance_valid(_cat) or not (_cat is CharacterBody3D):
+		return
+	var v: Vector3 = (_cat as CharacterBody3D).velocity
+	if Vector2(v.x, v.z).length() < rustle_min_speed:
+		return
+	var stream := SoundLibrary.random("ambient/rustle")
+	if stream == null:
+		return
+	_rustle_timer = randf_range(rustle_interval.x, rustle_interval.y)
+	_rustle_player.stream = stream
+	_rustle_player.pitch_scale = randf_range(0.9, 1.1)
+	_rustle_player.play()
 
 # Distance from a world point to the nearest trail centre-line (INF if no trails).
 func path_distance(world_pos: Vector3) -> float:
