@@ -21,14 +21,21 @@ enum MouseState { IDLE, FLEE }
 @export var fov_angle_deg: float = 100.0    # full width of the vision cone — wide; the cat has to come at the mouse's back to stay unseen
 @export var fov_range: float = 9.0         # how far down the cone the cat is spotted — well past the cat's stalk standoff, so any frontal creep gets caught
 @export var startle_range: float = 0.6      # only a near-collision wakes it from outside the cone — a stalk from behind stays unseen
+# A SPRINTING cat is HEARD from any angle out to fov_range — the same distance the
+# mouse can see forward. This is the one way a cat charging up behind the mouse
+# (outside the vision cone) wakes it. A creeping/stalking cat makes no sound.
 
 @export_group("Flee")
 @export var sprint_speed: float = 11.0       # well ABOVE the cat's chase_speed — a spotted mouse gets clean away
 @export var flee_min_time: float = 2.0      # commit to running at least this long before the off-map check arms
 @export var flee_max_time: float = 14.0     # gone after this even if still on the map
 @export var despawn_distance: float = 55.0  # distance from the world origin that counts as "off the map"
-@export var flee_bob_amp: float = 0.02      # how far the model hops up while sprinting — fakes leg movement
-@export var flee_bob_speed: float = 22.0    # bob cycles per second-ish while at full sprint
+@export var flee_bob_amp: float = 0.07      # how far the model hops up while running away — fakes scurrying legs
+@export var flee_bob_speed: float = 26.0    # bob cycles per second-ish while at full sprint
+@export var flee_start_speed_frac: float = 0.4  # bolts at this fraction of sprint_speed, so the cat briefly gains
+@export var flee_accel_time: float = 2.5    # seconds from bolting to full sprint_speed
+@export var slow_flee_chance: float = 0.2   # chance a bolt NEVER accelerates — the cat runs it down and catches it
+@export var slow_flee_speed_frac: float = 0.45  # fixed speed (× sprint_speed) for a non-accelerating flee — keep below the cat's pursue_speed
 
 @export_group("Idle")
 @export var walk_speed: float = 0.8                       # slow amble while it hasn't spotted the cat
@@ -37,6 +44,8 @@ enum MouseState { IDLE, FLEE }
 @export var idle_turn_max_deg: float = 35.0               # cap on how far each new amble point can bend the heading — keeps turns small so the cat can still sneak up
 @export var idle_turn_speed: float = 1.2                  # radians/sec easing toward the amble heading — slow and gentle
 @export var idle_pause_chance: float = 0.15               # fraction of amble points that are just "stop and sniff"
+@export var separation_radius: float = 4.0                # start drifting apart from any mouse closer than this — wide, so mice stay visibly scattered on the big map
+@export var separation_strength: float = 1.6              # m/s of "spread out from the crowd" nudge
 
 @export_group("Debug")
 ## Draws a translucent wedge for the vision cone: green = hasn't seen the cat,
@@ -61,6 +70,9 @@ var _cone_mat: StandardMaterial3D = null
 var _model: Node3D = null          # the visual mesh; bobbed up/down while fleeing
 var _model_base_y: float = 0.0     # its resting local Y, restored when not fleeing
 var _bob_phase: float = 0.0
+var _flee_speed_frac: float = 0.0  # 0..1 ramp from flee_start_speed_frac up to full sprint
+var _slow_flee: bool = false       # this bolt won't accelerate — the cat is allowed to catch it
+var _fence: Node = null            # the FenceRing; polled to catch a mouse that slips outside
 
 @onready var nav: NavigationAgent3D = $NavigationAgent3D
 
@@ -86,14 +98,24 @@ func _apply_run_bob(delta: float) -> void:
 	if _model == null:
 		return
 	if _mstate == MouseState.FLEE and not _braced:
-		_bob_phase += delta * flee_bob_speed
-		_model.position.y = _model_base_y + absf(sin(_bob_phase)) * flee_bob_amp
+		# Legs cycle (and hop) a bit faster/higher as the sprint ramps up, but a
+		# slow flee still visibly hops.
+		_bob_phase += delta * flee_bob_speed * maxf(_flee_speed_frac, 0.55)
+		_model.position.y = _model_base_y + absf(sin(_bob_phase)) * flee_bob_amp * maxf(_flee_speed_frac, 0.7)
 	else:
 		_model.position.y = lerpf(_model.position.y, _model_base_y, clampf(delta * 10.0, 0.0, 1.0))
 
 func _physics_process(delta: float) -> void:
 	if _cat == null or not is_instance_valid(_cat):
 		_cat = _find_cat()
+
+	# Hard boundary: a mouse that has ended up outside the fence (bolted through a
+	# seam, shoved by separation, spawned bad) is gone — same as escaping off the
+	# old map edge. main_3d hears `escaped` and drops in a replacement.
+	if not _inside_fence():
+		escaped.emit(self)
+		queue_free()
+		return
 
 	_apply_run_bob(delta)
 
@@ -113,7 +135,7 @@ func _physics_process(delta: float) -> void:
 	match _mstate:
 		MouseState.IDLE:
 			_process_idle(delta)
-			if _sees_cat():
+			if _sees_cat() or _hears_cat():
 				_start_flee()
 		MouseState.FLEE:
 			_process_flee(delta)
@@ -166,7 +188,16 @@ func _process_idle(delta: float) -> void:
 		_reset_turn_timer()
 
 	var step := Vector3.ZERO if _amble_pause else _nav_step(_amble_target)
-	if step == Vector3.ZERO:
+	var sep := _separation()
+	if sep != Vector3.ZERO:
+		# Too close to another mouse: spreading out overrides the amble entirely,
+		# and at a speed that clearly beats walk_speed, so clumps always come
+		# apart instead of the two mice grinding together while ambling.
+		var spread := sep * maxf(separation_strength, walk_speed * 1.5)
+		velocity.x = spread.x
+		velocity.z = spread.z
+		_yaw = lerp_angle(_yaw, atan2(sep.x, sep.z), clampf(delta * idle_turn_speed * 2.0, 0.0, 1.0))
+	elif step == Vector3.ZERO:
 		velocity.x = 0.0
 		velocity.z = 0.0
 	else:
@@ -174,6 +205,30 @@ func _process_idle(delta: float) -> void:
 		velocity.z = step.z * walk_speed
 		_yaw = lerp_angle(_yaw, atan2(step.x, step.z), clampf(delta * idle_turn_speed, 0.0, 1.0))
 	rotation.y = _yaw
+
+# A push away from every mouse crowding this one, so clumps always come apart —
+# overlapping mice confuse the cat's target picking and stalk. The push ramps up
+# hard as they close (quadratic), and two mice that spawn stacked at the exact
+# same point (no separating direction to normalise) get shoved apart along a
+# per-pair axis, opposite ways, so they don't just jitter in place together.
+func _separation() -> Vector3:
+	var push := Vector3.ZERO
+	for other in get_tree().get_nodes_in_group("mice"):
+		if other == self or not (other is Node3D):
+			continue
+		var d: Vector3 = global_position - (other as Node3D).global_position
+		d.y = 0.0
+		var dist := d.length()
+		if dist >= separation_radius:
+			continue
+		if dist < 0.05:
+			var key := float((get_instance_id() ^ other.get_instance_id()) % 6283) * 0.001
+			var s := 1.0 if get_instance_id() > other.get_instance_id() else -1.0
+			push += Vector3(sin(key), 0.0, cos(key)) * s
+		else:
+			var f := 1.0 - dist / separation_radius
+			push += d.normalized() * (f * f + f)
+	return push if push.length() <= 1.0 else push.normalized()
 
 # A fresh point to amble to: a short step whose heading bends at most
 # idle_turn_max_deg off the current facing (so turns stay small), kept within
@@ -201,8 +256,21 @@ func _process_flee(delta: float) -> void:
 		step = _flee_dir  # path exhausted / not ready — keep going the last good way
 	_flee_dir = step
 
-	velocity.x = step.x * sprint_speed
-	velocity.z = step.z * sprint_speed
+	# Most bolts ease from a slow start up to full sprint over flee_accel_time (the
+	# cat closes for a beat, then the mouse pulls clear). But slow_flee_chance of
+	# them never accelerate — those stay catchable.
+	if _slow_flee:
+		_flee_speed_frac = slow_flee_speed_frac
+	else:
+		var t := clampf(_flee_elapsed / maxf(flee_accel_time, 0.01), 0.0, 1.0)
+		_flee_speed_frac = lerpf(flee_start_speed_frac, 1.0, t * t)
+	var spd := sprint_speed * _flee_speed_frac
+	# Keep spacing while running too, so a bunch of mice bolting the same way (or
+	# waiting out flee_min_time near the rim) don't pile into one knot. The sprint
+	# speed dominates; this just fans them out sideways.
+	var sep := _separation() * separation_strength
+	velocity.x = step.x * spd + sep.x
+	velocity.z = step.z * spd + sep.z
 
 	# Face the run direction (+Z is forward — see _sees_cat).
 	_yaw = lerp_angle(_yaw, atan2(step.x, step.z), clampf(delta * 10.0, 0.0, 1.0))
@@ -236,6 +304,19 @@ func _sees_cat() -> bool:
 		return false
 	return fwd.normalized().angle_to(to / d) <= deg_to_rad(fov_angle_deg * 0.5)
 
+# A sprinting cat anywhere within fov_range, from ANY angle — hearing reaches as
+# far as the mouse can see forward, just without the cone. This is the mouse's
+# only warning when the cat comes up behind it (outside the vision cone) at speed:
+# a cat chasing the laser straight past, or one running down another mouse.
+func _hears_cat() -> bool:
+	if _cat == null or not is_instance_valid(_cat):
+		return false
+	if not (_cat.has_method("is_sprinting") and _cat.is_sprinting()):
+		return false
+	var to: Vector3 = _cat.global_position - global_position
+	to.y = 0.0
+	return to.length() <= fov_range
+
 # Flat unit vector pointing from the cat to the mouse (the escape heading).
 func _away_from_cat() -> Vector3:
 	if _cat == null or not is_instance_valid(_cat):
@@ -249,10 +330,21 @@ func _away_from_cat() -> Vector3:
 func _distance_from_origin() -> float:
 	return Vector2(global_position.x, global_position.z).length()
 
+# False once the mouse is past the fence line. No fence in the scene => always
+# inside (nothing to enforce).
+func _inside_fence() -> bool:
+	if _fence == null or not is_instance_valid(_fence):
+		_fence = get_tree().get_first_node_in_group("fence")
+	if _fence and _fence.has_method("contains"):
+		return _fence.contains(global_position)
+	return true
+
 func _start_flee() -> void:
 	_mstate = MouseState.FLEE
 	_flee_timer = flee_min_time
 	_flee_elapsed = 0.0
+	_slow_flee = randf() < slow_flee_chance
+	_flee_speed_frac = slow_flee_speed_frac if _slow_flee else flee_start_speed_frac
 	_flee_dir = _escape_heading()
 	# Aim way past the rim in the escape direction; the navmesh clamps that to a
 	# real point on the map edge and paths the mouse there around any terrain.
@@ -276,6 +368,11 @@ func _escape_heading() -> Vector3:
 ## The cat's hunt logic polls this to swap its slow stalk for a full-speed chase.
 func is_fleeing() -> bool:
 	return _mstate == MouseState.FLEE
+
+## True for the slow_flee_chance of bolts that never accelerate — the cat is
+## allowed to run these down and catch them mid-chase.
+func is_catchable_flee() -> bool:
+	return _mstate == MouseState.FLEE and _slow_flee
 
 ## Called by the cat the instant it launches its pounce. From here the mouse is
 ## caught: it stops dead and can't start fleeing, so seeing the cat in mid-air no
@@ -329,7 +426,7 @@ func _update_fov_cone() -> void:
 		return
 	if _mstate == MouseState.FLEE:
 		_cone_mat.albedo_color = Color(1.0, 0.15, 0.1, 0.33)
-	elif _sees_cat():
+	elif _sees_cat() or _hears_cat():
 		_cone_mat.albedo_color = Color(1.0, 0.55, 0.05, 0.28)
 	else:
 		_cone_mat.albedo_color = Color(0.2, 1.0, 0.3, 0.14)

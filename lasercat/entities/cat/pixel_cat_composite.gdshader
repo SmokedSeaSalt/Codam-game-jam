@@ -17,7 +17,10 @@ const float BAYER[16] = float[16](
 
 void fragment() {
 	vec4 c = texture(TEXTURE, UV);
-	if (c.a < 0.5) {
+	// Opaque cat body comes through at a == 1; the shadow-catcher plane comes
+	// through at a partial alpha and must blend (not punch a hole), so key on
+	// "nearly empty" rather than the old 0.5 cutout.
+	if (c.a < 0.004) {
 		discard;
 	}
 	if (visibility < 0.999) {
@@ -37,5 +40,7 @@ void fragment() {
 			rgb *= (floor(v * n + 0.5) / n) / v;
 		}
 	}
-	COLOR = vec4(rgb, 1.0);
+	// Keep the source alpha so the cast shadow blends over the scene; the cat
+	// body stays fully opaque because its own alpha is 1.
+	COLOR = vec4(rgb, c.a);
 }

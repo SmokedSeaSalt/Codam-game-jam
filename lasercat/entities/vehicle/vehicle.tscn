@@ -1,0 +1,38 @@
+[gd_scene format=3 uid="uid://btmtpx2nd3tr8"]
+
+[ext_resource type="Script" path="res://entities/vehicle/vehicle.gd" id="1_kapf2"]
+[ext_resource type="ArrayMesh" path="res://assets/Infra/Sketchfab_Scene_Tram_2_Mat_0.res" id="2_tl3ao"]
+[ext_resource type="ArrayMesh" path="res://assets/Infra/Sketchfab_Scene_Car_3_1_Mat_0.res" id="3_4lux0"]
+[ext_resource type="ArrayMesh" path="res://assets/Infra/Sketchfab_Scene_Excavator_Mat_0.res" id="4_a81o4"]
+[ext_resource type="ArrayMesh" path="res://assets/Infra/Sketchfab_Scene_Gas_Truck_Mat_0.res" id="5_eklkj"]
+[ext_resource type="ArrayMesh" path="res://assets/Infra/Sketchfab_Scene_Bus_3_Mat_0.res" id="6_yivw7"]
+[ext_resource type="ArrayMesh" path="res://assets/Infra/Sketchfab_Scene_Bus_2_Mat_0.res" id="7_enjft"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_14h70"]
+size = Vector3(11.07757, 3.9698896, 3.3608494)
+
+[node name="Vehicle" type="Area3D" unique_id=1046450977]
+script = ExtResource("1_kapf2")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1068990497]
+shape = SubResource("BoxShape3D_14h70")
+
+[node name="Models" type="Node3D" parent="." unique_id=1181533382]
+
+[node name="Tram1" type="MeshInstance3D" parent="Models" unique_id=465819366]
+mesh = ExtResource("2_tl3ao")
+
+[node name="Car1" type="MeshInstance3D" parent="Models" unique_id=311145088]
+mesh = ExtResource("3_4lux0")
+
+[node name="Excavator1" type="MeshInstance3D" parent="Models" unique_id=526408747]
+mesh = ExtResource("4_a81o4")
+
+[node name="GasTruck1" type="MeshInstance3D" parent="Models" unique_id=586788445]
+mesh = ExtResource("5_eklkj")
+
+[node name="Bus1" type="MeshInstance3D" parent="Models" unique_id=853307201]
+mesh = ExtResource("6_yivw7")
+
+[node name="Bus2" type="MeshInstance3D" parent="Models" unique_id=1389641565]
+mesh = ExtResource("7_enjft")
