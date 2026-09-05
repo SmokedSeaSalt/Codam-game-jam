@@ -1,4 +1,4 @@
-# 🔴 LASER CAT
+# LASER CAT
 
 > You don't control the cat.  
 > You control the laser.  
@@ -18,22 +18,14 @@ The cat follows the laser dot, meaning you must guide it through each level by m
 
 But movement matters:
 
-- 🔴 **Laser close to the cat** → The cat walks slowly.
-- 🔴 **Laser far from the cat** → The cat runs faster.
-- 🐱 **You control the laser, NOT the cat directly.**
-- 🐦 **Pigeons can distract the cat.**
-- 🐭 **Mice can distract the cat.**
+- **Laser close to the cat** → The cat walks slowly.
+- **Laser far from the cat** → The cat runs faster.
+- **You control the laser, NOT the cat directly.**
+- **Pigeons can distract the cat.**
+- **Mice can distract the cat.**
 
 If the cat spots an enemy, or an enemy spots the cat, the cat may **ignore the laser completely** and focus on the target instead.
 
 That means your carefully planned movement can go to s**t instantly.
 
 ---
-
-## 🐱 Cat AI
-
-The cat has its own behavior and instincts.
-
-### Following the Laser
-
-The cat normally follows the laser dot.
