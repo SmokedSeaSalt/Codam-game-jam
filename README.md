@@ -29,8 +29,8 @@ If the cat spots an enemy, or an enemy spots the cat, the cat may **ignore the l
 That means your carefully planned movement can go to s**t instantly.
 
 ---
- [MainScreen!](lasercat/scenes/Screenshot_1.png)
- [Level_1!](lasercat/scenes/Screenshot_2.png)
- [Level_2!](lasercat/scenes/Screenshot_3.png)
- [Level_3!](lasercat/scenes/Screenshot_4.png)
- [Level_4!](lasercat/scenes/Screenshot_5.png)
+ ![MainScreen!](lasercat/scenes/Screenshot_1.png)
+ ![Level_1!](lasercat/scenes/Screenshot_2.png)
+ ![Level_2!](lasercat/scenes/Screenshot_3.png)
+ ![Level_3!](lasercat/scenes/Screenshot_4.png)
+ ![Level_4!](lasercat/scenes/Screenshot_5.png)
